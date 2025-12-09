@@ -1,18 +1,16 @@
-import { useState } from "react";
+import React, { useState } from "react";
 
 function App() {
-  const [inputSignal, setInputSignal] = useState("1,2,3,4"); // default signal
+  const [inputSignal, setInputSignal] = useState("1,2,3,4");
   const [gain, setGain] = useState(2);
   const [result, setResult] = useState(null);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-    // convert input string to array of numbers
     const signalArray = inputSignal.split(",").map(Number);
 
     try {
-      const res = await fetch("/api/mixer", {
+      const res = await fetch("http://127.0.0.1:5000/api/mixer", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ inputSignal: signalArray, settings: { gain } })
