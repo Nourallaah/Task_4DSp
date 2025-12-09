@@ -1,3 +1,32 @@
+# --------------------------
+# Python backend
+# --------------------------
+
+# Virtual environments
+.venv/
+backend/.venv/
+venv/
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Distribution / packaging
+build/
+dist/
+*.egg-info/
+*.egg
+
+# --------------------------
+# Node.js frontend
+# --------------------------
+
+# Node modules
+node_modules/
+frontend/node_modules/
+
 # Logs
 logs
 *.log
@@ -7,12 +36,14 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
-node_modules
+# Build folders
 dist
 dist-ssr
 *.local
 
-# Editor directories and files
+# --------------------------
+# Editor / OS files
+# --------------------------
 .vscode/*
 !.vscode/extensions.json
 .idea
