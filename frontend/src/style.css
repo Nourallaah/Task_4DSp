@@ -63,38 +63,63 @@ body {
   background: #222;
 }
 
-.right-col .mixer-controls { padding: 6px; background: #fff; border-radius: 4px; border: 1px solid #ccc; }
+.right-col .mixer-controls {
+  padding: 6px;
+  background: #fff;
+  border-radius: 4px;
+  border: 1px solid #ccc;
+}
 
-.output-viewer { background: #fff; padding: 8px; border-radius: 4px; border: 1px solid #ccc; display:flex; flex-direction:column; gap:6px; }
-.output-canvas { width:100%; height:200px; border:1px solid #bbb; }
+.output-viewer {
+  background: #fff;
+  padding: 8px;
+  border-radius: 4px;
+  border: 1px solid #ccc;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.output-canvas {
+  width: 100%;
+  height: 200px;
+  border: 1px solid #bbb;
+}
+
 /* --- NEW ADDITIONS FOR REGION & SIZING --- */
 
 /* The container for the image and the overlay */
 .canvas-wrapper {
-  position: relative; /* Critical: allows absolute positioning of the overlay inside */
-  width: 260px;       /* Matches your preferred size */
+  position: relative;
+  /* Critical: allows absolute positioning of the overlay inside */
+  width: 260px;
+  /* Matches your preferred size */
   height: 260px;
   background: #f0f0f0;
   border: 1px solid #ddd;
-  overflow: hidden;   /* Keeps content inside */
+  overflow: hidden;
+  /* Keeps content inside */
 }
 
 /* Force the canvas to fit the wrapper */
 .canvas-wrapper canvas {
   width: 100%;
   height: 100%;
-  object-fit: contain; /* Ensures the image aspect ratio is preserved */
+  object-fit: contain;
+  /* Ensures the image aspect ratio is preserved */
   display: block;
 }
 
 /* Ensure the overlay is positioned relative to the wrapper */
 .region-overlay {
-  position: absolute; /* This anchors it to .canvas-wrapper */
+  position: absolute;
+  /* This anchors it to .canvas-wrapper */
   top: 0;
   left: 0;
   /* width/height/transform will be set inline by React */
   z-index: 10;
-  pointer-events: none; /* Allows mouse clicks to pass through to the canvas */
+  pointer-events: none;
+  /* Allows mouse clicks to pass through to the canvas */
 }
 
 /* Reset conflicts if you used 'right-col' inside the viewer row */
@@ -103,4 +128,365 @@ body {
   background: transparent;
   padding: 0;
   border: none;
+}
+
+/* ==========================================
+   MATLAB-STYLE LAYOUT (Part B)
+   ========================================== */
+
+.matlab-layout {
+  display: flex;
+  gap: 10px;
+  height: 100vh;
+  padding: 10px;
+  background: #e0e0e0;
+  box-sizing: border-box;
+}
+
+/* Left Panel - Control Panel */
+.left-panel {
+  width: 20%;
+  min-width: 250px;
+  background: #f5f5f5;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  overflow-y: auto;
+  box-shadow: 1px 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+/* Center Panel - 3D Visualization */
+.center-panel {
+  flex: 1;
+  background: white;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 1px 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+/* Right Panel - Statistics */
+.right-panel {
+  width: 18%;
+  min-width: 220px;
+  background: #f5f5f5;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  overflow-y: auto;
+  box-shadow: 1px 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+/* ==========================================
+   CONTROL PANEL STYLES
+   ========================================== */
+
+.control-panel {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.control-header {
+  background: linear-gradient(to bottom, #e0e0e0, #d0d0d0);
+  padding: 10px;
+  border-bottom: 1px solid #aaa;
+}
+
+.control-header h2 {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: #333;
+}
+
+.control-content {
+  padding: 15px;
+  flex: 1;
+  overflow-y: auto;
+}
+
+.control-section {
+  margin-bottom: 20px;
+  padding-bottom: 15px;
+  border-bottom: 1px solid #ddd;
+}
+
+.control-section:last-child {
+  border-bottom: none;
+}
+
+.control-section h3 {
+  margin: 0 0 12px 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: #555;
+}
+
+.control-group {
+  margin-bottom: 15px;
+}
+
+.control-group label {
+  display: block;
+  font-size: 12px;
+  color: #666;
+  margin-bottom: 5px;
+  font-weight: 500;
+}
+
+.control-group input[type="number"],
+.control-group select {
+  width: 100%;
+  padding: 6px 8px;
+  border: 1px solid #ccc;
+  border-radius: 3px;
+  font-size: 12px;
+  box-sizing: border-box;
+  margin-bottom: 5px;
+}
+
+.control-group input[type="range"] {
+  width: 100%;
+  margin-top: 5px;
+}
+
+.calculate-btn {
+  width: 100%;
+  padding: 10px;
+  background: linear-gradient(to bottom, #4CAF50, #45a049);
+  color: white;
+  border: 1px solid #3d8b40;
+  border-radius: 4px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.calculate-btn:hover:not(:disabled) {
+  background: linear-gradient(to bottom, #45a049, #3d8b40);
+}
+
+.calculate-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* ==========================================
+   3D VIEWER STYLES
+   ========================================== */
+
+.pattern-3d-viewer {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.viewer-header {
+  background: linear-gradient(to bottom, #e0e0e0, #d0d0d0);
+  padding: 8px 12px;
+  border-bottom: 1px solid #aaa;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.viewer-header h2 {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: #333;
+}
+
+.view-mode-selector {
+  display: flex;
+  gap: 5px;
+}
+
+.mode-btn {
+  padding: 5px 12px;
+  background: linear-gradient(to bottom, #fff, #e8e8e8);
+  border: 1px solid #aaa;
+  border-radius: 3px;
+  font-size: 11px;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.mode-btn:hover {
+  background: linear-gradient(to bottom, #f5f5f5, #ddd);
+}
+
+.mode-btn.active {
+  background: linear-gradient(to bottom, #4CAF50, #45a049);
+  color: white;
+  border-color: #3d8b40;
+  font-weight: 600;
+}
+
+.viewer-content {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #fafafa;
+  padding: 20px;
+}
+
+.viewer-content canvas {
+  max-width: 100%;
+  max-height: 100%;
+  border: 1px solid #ddd;
+  background: white;
+}
+
+.viewer-controls {
+  display: flex;
+  gap: 10px;
+  padding: 10px;
+  background: #f5f5f5;
+  border-top: 1px solid #ccc;
+  justify-content: center;
+}
+
+.view-btn {
+  padding: 6px 16px;
+  background: linear-gradient(to bottom, #fff, #e0e0e0);
+  border: 1px solid #aaa;
+  border-radius: 3px;
+  font-size: 11px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.view-btn:hover {
+  background: linear-gradient(to bottom, #f0f0f0, #d0d0d0);
+}
+
+/* ==========================================
+   STATS PANEL STYLES
+   ========================================== */
+
+.stats-panel {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.stats-header {
+  background: linear-gradient(to bottom, #e0e0e0, #d0d0d0);
+  padding: 10px;
+  border-bottom: 1px solid #aaa;
+}
+
+.stats-header h2 {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: #333;
+}
+
+.stats-content {
+  padding: 15px;
+  flex: 1;
+  overflow-y: auto;
+}
+
+.stats-section {
+  margin-bottom: 20px;
+  padding-bottom: 15px;
+  border-bottom: 1px solid #ddd;
+}
+
+.stats-section:last-child {
+  border-bottom: none;
+}
+
+.stats-section h3 {
+  margin: 0 0 10px 0;
+  font-size: 12px;
+  font-weight: 600;
+  color: #555;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.stat-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 0;
+  font-size: 12px;
+}
+
+.stat-label {
+  color: #666;
+  font-weight: 500;
+}
+
+.stat-value {
+  color: #333;
+  font-weight: 600;
+  font-family: 'Courier New', monospace;
+}
+
+.scenario-btn {
+  width: 100%;
+  padding: 8px;
+  background: linear-gradient(to bottom, #fff, #e8e8e8);
+  border: 1px solid #bbb;
+  border-radius: 3px;
+  font-size: 11px;
+  cursor: pointer;
+  transition: all 0.2s;
+  margin-top: 5px;
+}
+
+.scenario-btn:hover {
+  background: linear-gradient(to bottom, #f0f0f0, #d8d8d8);
+}
+
+.customize-btn {
+  background: linear-gradient(to bottom, #fff3e0, #ffe0b2) !important;
+  border-color: #ff9800 !important;
+  color: #e65100;
+  font-weight: 600;
+}
+
+.customize-btn:hover {
+  background: linear-gradient(to bottom, #ffe0b2, #ffcc80) !important;
+}
+
+/* ==========================================
+   SCROLLBAR STYLING
+   ========================================== */
+
+.left-panel::-webkit-scrollbar,
+.right-panel::-webkit-scrollbar,
+.control-content::-webkit-scrollbar,
+.stats-content::-webkit-scrollbar {
+  width: 8px;
+}
+
+.left-panel::-webkit-scrollbar-track,
+.right-panel::-webkit-scrollbar-track,
+.control-content::-webkit-scrollbar-track,
+.stats-content::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+.left-panel::-webkit-scrollbar-thumb,
+.right-panel::-webkit-scrollbar-thumb,
+.control-content::-webkit-scrollbar-thumb,
+.stats-content::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 4px;
+}
+
+.left-panel::-webkit-scrollbar-thumb:hover,
+.right-panel::-webkit-scrollbar-thumb:hover,
+.control-content::-webkit-scrollbar-thumb:hover,
+.stats-content::-webkit-scrollbar-thumb:hover {
+  background: #555;
 }
