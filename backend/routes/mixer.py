@@ -57,9 +57,8 @@ def mix(mreq: MixRequest):
 
     # 3. Logic for Fourier Mix
     ffts = [p.fft for p in valid_procs]
-    mags = [p.get_magnitude_array() for p in valid_procs]
+    mags = [np.abs(p.fft) for p in valid_procs]    
     phases = [p.get_phase_array() for p in valid_procs]
-    
     mixer = FourierMixer(ffts)
 
     # Generate Mask
