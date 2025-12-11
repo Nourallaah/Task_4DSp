@@ -1,60 +1,112 @@
 import React, { useState } from "react";
+import ImageViewer from "./components/ImageViewer";
+import MixerControls from "./components/MixerControls";
+import OutputViewer from "./components/OutputViewer";
+import { mix } from "./services/mixerApi";
+import "./style.css"; // Assuming CSS exists
 
-function App() {
-  const [inputSignal, setInputSignal] = useState("1,2,3,4");
-  const [gain, setGain] = useState(2);
-  const [result, setResult] = useState(null);
+export default function App() {
+  const [images, setImages] = useState([null, null, null, null]);
+  const [outputs, setOutputs] = useState({ out1: null, out2: null });
+  const [activeOutput, setActiveOutput] = useState("out1"); // "out1" or "out2"
+  const [loading, setLoading] = useState(false);
+  
+  // Global params
+  const [params, setParams] = useState({
+    mode: "magphase",
+    weights_mag: [1, 1, 1, 1], // Simplified init
+    weights_phase: [0, 0, 0, 0],
+    region: { 
+      type: "rect", 
+      x: 100, y: 100, width: 50, height: 50, 
+      radius: 30, inner: true 
+    }
+  });
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    const signalArray = inputSignal.split(",").map(Number);
+  function onChangeImage(i, b64) {
+    const arr = [...images];
+    arr[i] = b64;
+    setImages(arr);
+  }
+
+  async function onUpdate() {
+    if(loading) return;
+    setLoading(true);
 
     try {
-      const res = await fetch("http://127.0.0.1:5000/api/mixer", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ inputSignal: signalArray, settings: { gain } })
+      // 1. Process the TARGET output (FT Mixing with Region)
+      const targetReq = {
+        images_b64: images,
+        mode: params.mode,
+        weights_mag: params.weights_mag,
+        weights_phase: params.weights_phase,
+        region: params.region
+      };
+      
+      const targetRes = await mix(targetReq);
+      
+      // 2. Process the OTHER output (Spatial Mixing / "Actual Photos")
+      // Weights for spatial mix are usually just the magnitude weights or a separate slider
+      // Here we assume spatial mix uses the magnitude weights for simplicity
+      const spatialReq = {
+        images_b64: images,
+        mix_mode: "spatial", 
+        weights_global: params.weights_mag, 
+        region: params.region // Region ignored in spatial mode backend usually
+      };
+
+      const spatialRes = await mix(spatialReq);
+
+      setOutputs(prev => {
+        if(activeOutput === "out1") {
+          return { out1: targetRes.output_b64, out2: spatialRes.output_b64 };
+        } else {
+          return { out2: targetRes.output_b64, out1: spatialRes.output_b64 };
+        }
       });
-      const data = await res.json();
-      setResult(data.processed);
-    } catch (err) {
-      console.error("Fetch error:", err);
+
+    } catch (e) {
+      console.error(e);
+      alert("Mixing failed");
+    } finally {
+      setLoading(false);
     }
-  };
+  }
 
+  // Pass region info to viewers to draw the overlay
   return (
-    <div style={{ padding: "20px", fontFamily: "Arial" }}>
-      <h1>FT Mixer Project</h1>
-
-      <form onSubmit={handleSubmit}>
-        <div>
-          <label>Input Signal (comma-separated): </label>
-          <input
-            value={inputSignal}
-            onChange={(e) => setInputSignal(e.target.value)}
+    <div className="main-window">
+      {loading && <div className="progress-bar-strip">Processing...</div>}
+      
+      <div className="left-col">
+        {Array.from({length:4}).map((_,i)=>(
+          <ImageViewer 
+            key={i} 
+            id={i} 
+            onChangeImage={onChangeImage}
+            regionOverlay={params.region} 
           />
-        </div>
+        ))}
+      </div>
 
-        <div>
-          <label>Gain: </label>
-          <input
-            type="number"
-            value={gain}
-            onChange={(e) => setGain(Number(e.target.value))}
-          />
+      <div className="right-col">
+        <MixerControls 
+          params={params} 
+          setParams={setParams} 
+          onUpdate={onUpdate}
+          activeOutput={activeOutput}
+          setActiveOutput={setActiveOutput}
+        />
+        
+        <div className="output-row">
+          <div className={activeOutput === "out1" ? "out-container active" : "out-container"}>
+             <OutputViewer label="Output 1" imageB64={outputs.out1} />
+          </div>
+          <div className={activeOutput === "out2" ? "out-container active" : "out-container"}>
+             <OutputViewer label="Output 2" imageB64={outputs.out2} />
+          </div>
         </div>
-
-        <button type="submit">Process Signal</button>
-      </form>
-
-      {result && (
-        <div>
-          <h2>Processed Signal:</h2>
-          <p>{result.join(", ")}</p>
-        </div>
-      )}
+      </div>
     </div>
   );
 }
-
-export default App;

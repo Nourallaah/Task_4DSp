@@ -1,96 +1,106 @@
 :root {
-  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
-  line-height: 1.5;
-  font-weight: 400;
-
-  color-scheme: light dark;
-  color: rgba(255, 255, 255, 0.87);
-  background-color: #242424;
-
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
-
-a {
-  font-weight: 500;
-  color: #646cff;
-  text-decoration: inherit;
-}
-a:hover {
-  color: #535bf2;
+  --gap: 10px;
+  --panel-bg: #f3f3f3;
 }
 
 body {
+  font-family: "Segoe UI", Roboto, Arial, sans-serif;
   margin: 0;
+  padding: 6px;
+  background: #eee;
+}
+
+.main-window {
   display: flex;
-  place-items: center;
-  min-width: 320px;
-  min-height: 100vh;
+  gap: var(--gap);
+  height: 98vh;
+  padding: 6px;
+  box-sizing: border-box;
 }
 
-h1 {
-  font-size: 3.2em;
-  line-height: 1.1;
+.left-col {
+  width: 58%;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 8px;
 }
 
-#app {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
-  text-align: center;
+.right-col {
+  width: 42%;
+  background: var(--panel-bg);
+  border-radius: 6px;
+  padding: 10px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
-}
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
-}
-.logo.vanilla:hover {
-  filter: drop-shadow(0 0 2em #3178c6aa);
+.image-viewer {
+  background: white;
+  padding: 8px;
+  border-radius: 4px;
+  border: 1px solid #ccc;
 }
 
-.card {
-  padding: 2em;
+.viewer-row {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
 }
 
-.read-the-docs {
-  color: #888;
+.orig-canvas {
+  width: 260px;
+  height: 260px;
+  border: 1px solid #ddd;
+  background: #fff;
 }
 
-button {
-  border-radius: 8px;
-  border: 1px solid transparent;
-  padding: 0.6em 1.2em;
-  font-size: 1em;
-  font-weight: 500;
-  font-family: inherit;
-  background-color: #1a1a1a;
-  cursor: pointer;
-  transition: border-color 0.25s;
-}
-button:hover {
-  border-color: #646cff;
-}
-button:focus,
-button:focus-visible {
-  outline: 4px auto -webkit-focus-ring-color;
+.ft-canvas {
+  width: 260px;
+  height: 260px;
+  border: 1px solid #ddd;
+  background: #222;
 }
 
-@media (prefers-color-scheme: light) {
-  :root {
-    color: #213547;
-    background-color: #ffffff;
-  }
-  a:hover {
-    color: #747bff;
-  }
-  button {
-    background-color: #f9f9f9;
-  }
+.right-col .mixer-controls { padding: 6px; background: #fff; border-radius: 4px; border: 1px solid #ccc; }
+
+.output-viewer { background: #fff; padding: 8px; border-radius: 4px; border: 1px solid #ccc; display:flex; flex-direction:column; gap:6px; }
+.output-canvas { width:100%; height:200px; border:1px solid #bbb; }
+/* --- NEW ADDITIONS FOR REGION & SIZING --- */
+
+/* The container for the image and the overlay */
+.canvas-wrapper {
+  position: relative; /* Critical: allows absolute positioning of the overlay inside */
+  width: 260px;       /* Matches your preferred size */
+  height: 260px;
+  background: #f0f0f0;
+  border: 1px solid #ddd;
+  overflow: hidden;   /* Keeps content inside */
+}
+
+/* Force the canvas to fit the wrapper */
+.canvas-wrapper canvas {
+  width: 100%;
+  height: 100%;
+  object-fit: contain; /* Ensures the image aspect ratio is preserved */
+  display: block;
+}
+
+/* Ensure the overlay is positioned relative to the wrapper */
+.region-overlay {
+  position: absolute; /* This anchors it to .canvas-wrapper */
+  top: 0;
+  left: 0;
+  /* width/height/transform will be set inline by React */
+  z-index: 10;
+  pointer-events: none; /* Allows mouse clicks to pass through to the canvas */
+}
+
+/* Reset conflicts if you used 'right-col' inside the viewer row */
+.viewer-row .right-col {
+  width: auto;
+  background: transparent;
+  padding: 0;
+  border: none;
 }

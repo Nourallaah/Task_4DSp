@@ -1,2 +1,6 @@
-flask==2.3.3 
-flask-cors==3.0.10
+fastapi
+uvicorn[standard]
+numpy
+pillow
+python-multipart
+pydantic
