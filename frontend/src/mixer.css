@@ -1,0 +1,334 @@
+:root {
+    --gap: 8px;
+    --panel-bg: #f8f9fa;
+    --border: 1px solid #dee2e6;
+    --viewer-bg: #ffffff;
+}
+
+body,
+html {
+    margin: 0;
+    padding: 0;
+    height: 100vh;
+    box-sizing: border-box;
+    font-family: "Segoe UI", sans-serif;
+    background-color: #e9ecef;
+    overflow: hidden;
+    /* Prevent full page scroll, handle inside panels */
+}
+
+/* Main Layout: Left (Inputs) | Right (Controls + Outputs) */
+.main-window {
+    display: flex;
+    height: 100vh;
+    padding: var(--gap);
+    gap: var(--gap);
+}
+
+/* --- LEFT COLUMN: 2x2 Grid for Inputs --- */
+.left-col {
+    flex: 3;
+    /* Takes 60% approx */
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    /* 2 Wide */
+    grid-template-rows: 1fr 1fr;
+    /* 2 High */
+    gap: var(--gap);
+    min-height: 0;
+    /* Important for scroll/fit */
+}
+
+/* --- RIGHT COLUMN: Controls Top, Outputs Bottom --- */
+.right-col {
+    flex: 2;
+    /* Takes 40% approx */
+    display: flex;
+    flex-direction: column;
+    gap: var(--gap);
+    min-height: 0;
+}
+
+/* --- CONTROLS SECTION --- */
+.controls-panel {
+    background: var(--panel-bg);
+    border: var(--border);
+    border-radius: 6px;
+    padding: 10px;
+    overflow-y: auto;
+    max-height: 45%;
+    /* Don't let controls eat all space */
+    font-size: 0.85rem;
+}
+
+/* --- OUTPUTS SECTION: Grid to match inputs --- */
+.outputs-grid {
+    flex: 1;
+    /* Take remaining height */
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    /* Side by side */
+    gap: var(--gap);
+}
+
+/* --- SHARED VIEWER STYLES (Inputs & Outputs) --- */
+.viewer-card {
+    background: var(--viewer-bg);
+    border: var(--border);
+    border-radius: 6px;
+    display: flex;
+    flex-direction: column;
+    padding: 6px;
+    min-width: 0;
+    /* Prevents grid blowout */
+    min-height: 0;
+}
+
+.viewer-header {
+    font-weight: 600;
+    font-size: 0.85rem;
+    margin-bottom: 4px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: #495057;
+}
+
+/* The container for the actual canvases */
+.canvas-row {
+    flex: 1;
+    display: flex;
+    gap: 4px;
+    align-items: center;
+    justify-content: center;
+    min-height: 0;
+    /* Critical for aspect ratio fitting */
+}
+
+/* The wrapper around a single canvas (handles scaling & overlay) */
+.canvas-wrapper {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    background: #000;
+    overflow: hidden;
+    border-radius: 3px;
+    /* Ensure it doesn't get too small or weirdly stretched */
+    aspect-ratio: 1 / 1;
+    max-height: 100%;
+}
+
+/* Actual Canvas Tag */
+.canvas-wrapper canvas {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    /* Keeps logic pixels inside visual box */
+    display: block;
+}
+
+/* Region Overlay (Red Box) */
+.region-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    border: 2px dashed rgba(255, 50, 50, 0.8);
+    background-color: rgba(255, 0, 0, 0.15);
+    pointer-events: none;
+    z-index: 10;
+}
+
+/* Controls CSS Helpers */
+.slider-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 4px;
+}
+
+.slider-row input {
+    flex: 1;
+}
+
+.slider-row label {
+    width: 60px;
+}
+
+
+/* Upload Spinner Overlay */
+.loader-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(255, 255, 255, 0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 20;
+}
+
+.spinner {
+    width: 30px;
+    height: 30px;
+    border: 4px solid #ccc;
+    border-top-color: #007bff;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* Mixer Progress Line */
+.progress-line {
+    height: 4px;
+    width: 100%;
+    background: #e9ecef;
+    margin-top: 5px;
+    border-radius: 2px;
+    overflow: hidden;
+    position: relative;
+}
+
+.progress-line::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: 40%;
+    background: #28a745;
+    animation: slide 1.5s infinite ease-in-out;
+}
+
+@keyframes slide {
+    0% {
+        left: -40%;
+    }
+
+    100% {
+        left: 100%;
+    }
+}
+
+/* Button Styles */
+.update-btn {
+    width: 100%;
+    padding: 10px;
+    background: #007bff;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: 600;
+    margin-top: auto;
+    /* Push to bottom if flex container */
+}
+
+.update-btn:disabled {
+    background: #6c757d;
+    cursor: not-allowed;
+}
+
+/* Minor Tweaks for Controls Layout */
+.section {
+    border-bottom: 1px solid #eee;
+    padding-bottom: 10px;
+    margin-bottom: 10px;
+}
+
+.section h4 {
+    margin: 0 0 8px 0;
+    font-size: 0.9rem;
+    color: #555;
+}
+
+.sliders-grid {
+    display: flex;
+    gap: 10px;
+}
+
+.column {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.region-controls .row {
+    display: flex;
+    gap: 5px;
+    margin-bottom: 5px;
+}
+
+.region-controls label {
+    font-size: 0.8rem;
+    display: flex;
+    align-items: center;
+}
+
+.region-controls input[type="range"] {
+    flex: 1;
+    margin-left: 5px;
+}
+
+/* --- PLACEHOLDER & EMPTY STATES --- */
+
+/* The container for the "No Image" state */
+.placeholder-container {
+    width: 100%;
+    height: 100%;
+    background-color: #e9ecef;
+    /* Light grey background */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: #adb5bd;
+    transition: background-color 0.2s;
+    user-select: none;
+}
+
+.placeholder-container:hover {
+    background-color: #dee2e6;
+    /* Slightly darker on hover */
+    color: #6c757d;
+}
+
+/* The SVG Icon styling */
+.placeholder-icon {
+    width: 48px;
+    height: 48px;
+    margin-bottom: 10px;
+    stroke: currentColor;
+    stroke-width: 2;
+    fill: none;
+}
+
+/* The Text styling */
+.placeholder-text {
+    font-weight: 600;
+    font-size: 0.9rem;
+    background: rgba(0, 0, 0, 0.05);
+    padding: 6px 12px;
+    border-radius: 4px;
+}
+
+/* The Right-Side (FT) Empty State */
+.empty-state {
+    width: 100%;
+    height: 100%;
+    background-color: #f8f9fa;
+    /* Very light, clean grey */
+}
+
+/* Ensure the wrapper doesn't force black background anymore */
+.canvas-wrapper {
+    background: transparent;
+}

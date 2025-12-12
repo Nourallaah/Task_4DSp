@@ -3,7 +3,7 @@ import ControlPanel from "./components/ControlPanel";
 import Pattern3DViewer from "./components/Pattern3DViewer";
 import StatsPanel from "./components/StatsPanel";
 import { calculateAllVisualizations, loadScenarioPreset } from "./services/beamformingApi";
-import "./style.css";
+import "./beamforming.css";
 
 export default function AppB() {
     // State for beamforming parameters
@@ -37,11 +37,14 @@ export default function AppB() {
     useEffect(() => {
         const timer = setTimeout(() => {
             handleCalculate();
-        }, 500); // 500ms debounce - waits for user to finish adjusting
+        }, 500); // 500ms debounce
 
         return () => clearTimeout(timer);
-    }, [params.numElements, params.elementSpacing, params.frequency,
-    params.geometry, params.curvature, params.azimuthAngle, params.elevationAngle]);
+    }, [
+        params.numElements, params.elementSpacing, params.frequency,
+        params.geometry, params.curvature, params.azimuthAngle, params.elevationAngle,
+        params.windowType, params.phaseBits, params.phaseError
+    ]);
 
     // Calculate and update visualization
     const handleCalculate = async () => {
@@ -56,23 +59,21 @@ export default function AppB() {
                     element_spacing: params.elementSpacing,
                     frequency: params.frequency,
                     array_type: params.geometry,
-                    curvature: params.curvature
+                    curvature: params.geometry === "curved" ? params.curvature : 0.0
                 },
                 azimuth_angle: params.azimuthAngle,
-                elevation_angle: params.elevationAngle
+                elevation_angle: params.elevationAngle,
+                window_type: params.windowType,
+                phase_bits: params.phaseBits,
+                phase_error: params.phaseError
             };
 
             console.log("Sending request:", request);
-
-            // Call backend API
             const data = await calculateAllVisualizations(request);
-
-            console.log("Received data:", data);
             setVisualizationData(data);
-
         } catch (err) {
             console.error("Calculation error:", err);
-            setError(err.message || "Failed to calculate beam pattern");
+            setError(err.message || "Failed to calculate patterns");
         } finally {
             setLoading(false);
         }
@@ -85,18 +86,21 @@ export default function AppB() {
 
         try {
             console.log("Loading scenario:", presetName);
-            const scenarioData = await loadScenarioPreset(presetName);
+            const scenario = await loadScenarioPreset(presetName);
 
-            console.log("Loaded scenario:", scenarioData);
+            console.log("Loaded scenario:", scenario);
 
-            // Update params with scenario data
+            // Update local state with scenario config
             updateParams({
-                numElements: scenarioData.num_elements,
-                frequency: scenarioData.frequency,
-                geometry: scenarioData.array_type,
-                curvature: scenarioData.array_type === "curved" ? 0.2 : 0,
-                azimuthAngle: 0,      // Reset to default
-                elevationAngle: 0     // Reset to default
+                numElements: scenario.num_elements,
+                frequency: scenario.frequency,
+                geometry: scenario.array_type,
+                // Reset steering and impairments for new scenario
+                azimuthAngle: 0,
+                elevationAngle: 0,
+                windowType: "uniform",
+                phaseBits: 0,
+                phaseError: 0
             });
 
             // Automatically calculate after loading
@@ -105,6 +109,7 @@ export default function AppB() {
         } catch (err) {
             console.error("Load scenario error:", err);
             setError(err.message || "Failed to load scenario");
+        } finally {
             setLoading(false);
         }
     };
@@ -113,13 +118,16 @@ export default function AppB() {
     const handleResetToDefault = () => {
         // Reset to initial default values
         updateParams({
-            numElements: 8,
+            numElements: 16,
             elementSpacing: 0.5,
             frequency: 1e9,
             geometry: "linear",
             curvature: 0,
             azimuthAngle: 0,
-            elevationAngle: 0
+            elevationAngle: 0,
+            windowType: "uniform",
+            phaseBits: 0,
+            phaseError: 0
         });
 
         // Automatically recalculate with default values
