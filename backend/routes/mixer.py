@@ -45,22 +45,26 @@ def mix(mreq: MixRequest):
     phases = [p.get_phase_array() for p in valid_procs]
     mixer  = FourierMixer(ffts)
 
-    # 3. Generate mask (rect or low‑freq)
-    if mreq.region.type == "rect":
-        mask = MaskGenerator.rectangular_mask(
-            (min_h, min_w),
-            (mreq.region.x, mreq.region.y),
-            mreq.region.width,
-            mreq.region.height
-        )
-    else:
-        mask = MaskGenerator.low_freq_central(
-            (min_h, min_w),
-            mreq.region.radius
-        )
+    # 3. Generate mask (only if region is enabled)
+    if hasattr(mreq.region, 'enabled') and mreq.region.enabled:
+        if mreq.region.type == "rect":
+            mask = MaskGenerator.rectangular_mask(
+                (min_h, min_w),
+                (mreq.region.x, mreq.region.y),
+                mreq.region.width,
+                mreq.region.height
+            )
+        else:
+            mask = MaskGenerator.low_freq_central(
+                (min_h, min_w),
+                mreq.region.radius
+            )
 
-    if not mreq.region.inner:
-        mask = 1.0 - mask
+        if not mreq.region.inner:
+            mask = 1.0 - mask
+    else:
+        # No mask - full image mixing (mask of all 1s)
+        mask = np.ones((min_h, min_w), dtype=np.float32)
 
     # map weights to valid processors
     w_mag   = [mreq.weights_mag[i]   for i, p in enumerate(processors) if p]

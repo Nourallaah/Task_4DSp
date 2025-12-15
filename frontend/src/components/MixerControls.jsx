@@ -1,3 +1,5 @@
+import React from "react";
+
 export default function MixerControls({ params, setParams, onUpdate, activeOutput, setActiveOutput, loading }) {
   
   function updateWeight(type, idx, val) {
@@ -10,63 +12,145 @@ export default function MixerControls({ params, setParams, onUpdate, activeOutpu
     setParams({ ...params, region: { ...params.region, [key]: parseInt(val) } });
   }
 
+  // Toggle region functionality on/off
+  function toggleRegionEnabled(enabled) {
+    setParams({ 
+      ...params, 
+      region: { 
+        ...params.region, 
+        enabled: enabled 
+      } 
+    });
+  }
+
   return (
     <div className="mixer-controls">
-      <div className="controls-header">
+      {/* --- Header --- */}
+      <div className="controls-header compact-header">
         <h3>Mixing Controls</h3>
-        {/* NEW: Progress Bar */}
         {loading && <div className="progress-line"></div>}
       </div>
 
-      <div className="section">
-        <h4>Target Output</h4>
-        <div className="output-selector">
-          <label><input type="radio" checked={activeOutput === "out1"} onChange={() => setActiveOutput("out1")} /> Output 1</label>
-          <label><input type="radio" checked={activeOutput === "out2"} onChange={() => setActiveOutput("out2")} /> Output 2</label>
+      {/* --- Output Selector (Segmented Style) --- */}
+      <div className="section compact-section">
+        <div className="output-toggle">
+           <button 
+             className={activeOutput === "out1" ? "active" : ""} 
+             onClick={() => setActiveOutput("out1")}>Output 1
+           </button>
+           <button 
+             className={activeOutput === "out2" ? "active" : ""} 
+             onClick={() => setActiveOutput("out2")}>Output 2
+           </button>
         </div>
       </div>
 
-      <div className="section">
-        <h4>Weights</h4>
-        <div className="sliders-grid">
-           <div className="column">
-              <span>Mag</span>
-              {params.weights_mag.map((w, i) => (
-                  <input key={i} type="range" min="0" max="1" step="0.1" value={w} 
-                         onChange={e => updateWeight('weights_mag', i, e.target.value)} />
-              ))}
-           </div>
-           <div className="column">
-              <span>Phase</span>
-               {params.weights_phase.map((w, i) => (
-                  <input key={i} type="range" min="0" max="1" step="0.1" value={w} 
-                         onChange={e => updateWeight('weights_phase', i, e.target.value)} />
-              ))}
-           </div>
+      {/* --- Weights (Grid Layout) --- */}
+      <div className="section compact-section">
+        <div className="weights-grid">
+          {/* Table Headers */}
+          <span className="grid-head"></span>
+          <span className="grid-head">Magnitude</span>
+          <span className="grid-head">Phase</span>
+
+          {/* Table Rows */}
+          {params.weights_mag.map((wMag, i) => (
+            <React.Fragment key={i}>
+              <span className="img-label">Img {i + 1}</span>
+              
+              {/* Mag Slider */}
+              <input 
+                type="range" min="0" max="1" step="0.1" value={wMag} 
+                onChange={e => updateWeight('weights_mag', i, e.target.value)} 
+                title={`Image ${i+1} Magnitude: ${wMag}`}
+              />
+
+              {/* Phase Slider */}
+              <input 
+                type="range" min="0" max="1" step="0.1" value={params.weights_phase[i]} 
+                onChange={e => updateWeight('weights_phase', i, e.target.value)} 
+                title={`Image ${i+1} Phase: ${params.weights_phase[i]}`}
+              />
+            </React.Fragment>
+          ))}
         </div>
       </div>
 
-      <div className="section">
-        <h4>Region Filter</h4>
-        <div className="region-controls">
-          <div className="row">
-            <label>X: <input type="range" max="250" value={params.region.x} onChange={e=>updateRegion('x', e.target.value)}/></label>
-            <label>Y: <input type="range" max="250" value={params.region.y} onChange={e=>updateRegion('y', e.target.value)}/></label>
-          </div>
-          <div className="row">
-            <label>W: <input type="range" max="150" value={params.region.width} onChange={e=>updateRegion('width', e.target.value)}/></label>
-            <label>H: <input type="range" max="150" value={params.region.height} onChange={e=>updateRegion('height', e.target.value)}/></label>
-          </div>
-          <label className="checkbox-row">
-              <input type="checkbox" checked={params.region.inner} 
-                     onChange={e=>setParams({...params, region: {...params.region, inner: e.target.checked}})} />
+      {/* --- Region Filter Section with Toggle --- */}
+      <div className="section compact-section">
+        <label className="checkbox-row compact-check">
+          <input 
+            type="checkbox" 
+            checked={params.region.enabled} 
+            onChange={e => toggleRegionEnabled(e.target.checked)}
+          />
+          <span>Enable Region Filter</span>
+        </label>
+        
+        {/* Region controls - conditionally rendered */}
+        {params.region.enabled && (
+          <>
+            <div className="region-compact-grid">
+              <div className="input-group">
+                <span>X</span>
+                <input 
+                  type="range" 
+                  max="250" 
+                  value={params.region.x} 
+                  onChange={e => updateRegion('x', e.target.value)}
+                  disabled={!params.region.enabled}
+                />
+              </div>
+              <div className="input-group">
+                <span>Y</span>
+                <input 
+                  type="range" 
+                  max="250" 
+                  value={params.region.y} 
+                  onChange={e => updateRegion('y', e.target.value)}
+                  disabled={!params.region.enabled}
+                />
+              </div>
+              <div className="input-group">
+                <span>W</span>
+                <input 
+                  type="range" 
+                  max="150" 
+                  value={params.region.width} 
+                  onChange={e => updateRegion('width', e.target.value)}
+                  disabled={!params.region.enabled}
+                />
+              </div>
+              <div className="input-group">
+                <span>H</span>
+                <input 
+                  type="range" 
+                  max="150" 
+                  value={params.region.height} 
+                  onChange={e => updateRegion('height', e.target.value)}
+                  disabled={!params.region.enabled}
+                />
+              </div>
+            </div>
+            <label className="checkbox-row compact-check">
+              <input 
+                type="checkbox" 
+                checked={params.region.inner} 
+                onChange={e => setParams({
+                  ...params, 
+                  region: {...params.region, inner: e.target.checked}
+                })}
+                disabled={!params.region.enabled}
+              />
               <span>Pass Inner Region</span>
-          </label>
-        </div>
+            </label>
+          </>
+        )}
       </div>
 
-      <button className="update-btn" onClick={onUpdate} disabled={loading}>
-        {loading ? "Processing..." : "Update Mix Result"}
+      {/* Button is no longer disabled on loading to allow restart */}
+      <button className="update-btn compact-btn" onClick={onUpdate}>
+        {loading ? "Restart Mix Request" : "Update Mix Result"}
       </button>
     </div>
   );

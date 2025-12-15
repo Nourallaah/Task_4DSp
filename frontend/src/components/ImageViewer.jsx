@@ -91,14 +91,18 @@ export default function ImageViewer({ id, onChangeImage, regionOverlay }) {
       <div className="canvas-row">
         {/* --- LEFT: Original or Placeholder --- */}
         <div className="canvas-wrapper">
+           {/* Loader - Visible during upload (overplays placeholder or image) */}
+           {uploading && (
+             <div className="loader-overlay">
+               <div className="spinner"></div>
+             </div>
+           )}
+
            {b64 ? (
-             <>
-               <canvas ref={origRef} onDoubleClick={()=>fileInputRef.current.click()} style={filterStyle}/>
-               {uploading && <div className="loader-overlay"><div className="spinner"></div></div>}
-             </>
+             <canvas ref={origRef} onDoubleClick={()=>fileInputRef.current.click()} style={filterStyle}/>
            ) : (
              <div className="placeholder-container" onDoubleClick={()=>fileInputRef.current.click()}>
-                {/* SVG Icon similar to the one requested */}
+                {/* SVG Icon */}
                 <svg className="placeholder-icon" viewBox="0 0 24 24">
                   <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
                   <circle cx="8.5" cy="8.5" r="1.5"></circle>

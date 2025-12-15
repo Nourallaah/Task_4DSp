@@ -1,10 +1,16 @@
-from PIL import Image
+from PIL import Image, ImageOps
 import numpy as np
 from io import BytesIO
+import pillow_heif
+
+pillow_heif.register_heif_opener()
 
 class ImageProcessor:
     def __init__(self, pil: Image.Image):
+        # Ensure we work with RGB and the orientation is fixed before we start
         self.original_pil = pil.convert("RGB")
+        
+        # Initialize arrays
         self.gray = self._to_gray_array(self.original_pil).astype(np.float32)
         # store fft shifted (centered)
         self.fft = np.fft.fftshift(np.fft.fft2(self.gray))
@@ -12,6 +18,11 @@ class ImageProcessor:
     @classmethod
     def from_bytes(cls, raw_bytes: bytes):
         pil = Image.open(BytesIO(raw_bytes))
+        
+        # --- FIX 1: Handle EXIF Rotation ---
+        # This reads the orientation tag and physically rotates the image data
+        pil = ImageOps.exif_transpose(pil)
+        
         return cls(pil)
 
     def _to_gray_array(self, pil: Image.Image):
@@ -21,17 +32,28 @@ class ImageProcessor:
         r = arr[:,:,0]
         g = arr[:,:,1]
         b = arr[:,:,2]
+        # Standard luminance formula
         gray = 0.299*r + 0.587*g + 0.114*b
         return gray
 
     def resize_to(self, size_tuple):
-        # size_tuple = (w, h)
-        new_pil = self.original_pil.resize(size_tuple, Image.BILINEAR)
+        """
+        Resizes the image to the specific viewport dimensions (w, h).
+        This ensures the numpy arrays match for mixing.
+        """
+        # --- FIX 2: Use LANCZOS for better quality ---
+        # Resize the internal PIL image to the target size
+        new_pil = self.original_pil.resize(size_tuple, Image.LANCZOS)
+        
+        # Update internal state with new dimensions
         self.original_pil = new_pil.convert("RGB")
         self.gray = self._to_gray_array(self.original_pil)
+        
+        # Re-calculate FFT based on the new size
         self.fft = np.fft.fftshift(np.fft.fft2(self.gray))
 
-    # visualization helpers (return PIL images)
+    # --- Visualization helpers (return PIL images) ---
+
     def get_display_original(self):
         arr = np.clip(self.gray, 0, 255).astype('uint8')
         return Image.fromarray(arr).convert("L")

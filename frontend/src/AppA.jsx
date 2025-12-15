@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import ImageViewer from "./components/ImageViewer";
 import MixerControls from "./components/MixerControls";
 import OutputViewer from "./components/OutputViewer";
@@ -11,11 +11,22 @@ export default function App() {
   const [activeOutput, setActiveOutput] = useState("out1");
   const [loading, setLoading] = useState(false);
 
+  // Ref to store the current AbortController
+  const abortControllerRef = useRef(null);
+
   const [params, setParams] = useState({
     mode: "magphase",
     weights_mag: [1, 1, 1, 1],
     weights_phase: [0, 0, 0, 0],
-    region: { type: "rect", x: 60, y: 60, width: 50, height: 50, inner: true },
+    region: { 
+      type: "rect", 
+      enabled: false,
+      x: 60, 
+      y: 60, 
+      width: 50, 
+      height: 50, 
+      inner: true 
+    },
   });
 
   function onChangeImage(index, b64) {
@@ -25,7 +36,15 @@ export default function App() {
   }
 
   async function onUpdate() {
-    if (loading) return;
+    // 1. If a request is currently running, cancel it
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+
+    // 2. Create a new controller for the new request
+    const controller = new AbortController();
+    abortControllerRef.current = controller;
+
     setLoading(true);
 
     try {
@@ -35,7 +54,7 @@ export default function App() {
         weights_mag: params.weights_mag,
         weights_phase: params.weights_phase,
         region: params.region,
-      });
+      }, controller.signal); // Pass the signal to the API
 
       const newImg = res.output_b64;
 
@@ -46,9 +65,20 @@ export default function App() {
           : { ...prev, out2: newImg }
       );
     } catch (err) {
-      console.error(err);
+      // Ignore errors caused by aborting the request
+      if (err.name === 'AbortError') {
+        console.log("Previous request cancelled");
+      } else {
+        console.error(err);
+      }
     } finally {
-      setLoading(false);
+      // 3. Only turn off loading if THIS controller is still the active one.
+      // If the user clicked Update again, the ref will have changed, 
+      // so we shouldn't turn off the loading spinner for the new request.
+      if (abortControllerRef.current === controller) {
+        setLoading(false);
+        abortControllerRef.current = null;
+      }
     }
   }
 

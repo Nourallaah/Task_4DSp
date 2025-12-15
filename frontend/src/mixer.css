@@ -1,334 +1,373 @@
+/* =========================================
+   1. VARIABLES & RESET
+   ========================================= */
 :root {
-    --gap: 8px;
-    --panel-bg: #f8f9fa;
-    --border: 1px solid #dee2e6;
-    --viewer-bg: #ffffff;
+  --gap: 8px;
+  --panel-bg: #f8f9fa;
+  --viewer-bg: #ffffff;
+  --border: 1px solid #dee2e6;
+  --primary: #007bff;
+  --text-dark: #343a40;
+  --text-muted: #6c757d;
 }
 
-body,
-html {
-    margin: 0;
-    padding: 0;
-    height: 100vh;
-    box-sizing: border-box;
-    font-family: "Segoe UI", sans-serif;
-    background-color: #e9ecef;
-    overflow: hidden;
-    /* Prevent full page scroll, handle inside panels */
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100vh;
+  box-sizing: border-box;
+  font-family: "Segoe UI", system-ui, sans-serif;
+  background-color: #e9ecef;
+  overflow: hidden; /* Prevent full page scroll */
 }
 
-/* Main Layout: Left (Inputs) | Right (Controls + Outputs) */
+*, *::before, *::after {
+  box-sizing: inherit;
+}
+
+/* =========================================
+   2. MAIN LAYOUT
+   ========================================= */
 .main-window {
-    display: flex;
-    height: 100vh;
-    padding: var(--gap);
-    gap: var(--gap);
+  display: flex;
+  height: 100vh;
+  padding: var(--gap);
+  gap: var(--gap);
 }
 
-/* --- LEFT COLUMN: 2x2 Grid for Inputs --- */
+/* LEFT: Inputs (2x2 Grid) */
 .left-col {
-    flex: 3;
-    /* Takes 60% approx */
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    /* 2 Wide */
-    grid-template-rows: 1fr 1fr;
-    /* 2 High */
-    gap: var(--gap);
-    min-height: 0;
-    /* Important for scroll/fit */
+  flex: 3; /* ~60% width */
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: 1fr 1fr;
+  gap: var(--gap);
+  min-height: 0; /* Critical for grid scrolling behavior */
 }
 
-/* --- RIGHT COLUMN: Controls Top, Outputs Bottom --- */
+/* RIGHT: Controls + Outputs */
 .right-col {
-    flex: 2;
-    /* Takes 40% approx */
-    display: flex;
-    flex-direction: column;
-    gap: var(--gap);
-    min-height: 0;
+  flex: 2; /* ~40% width */
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap);
+  min-height: 0;
 }
 
-/* --- CONTROLS SECTION --- */
+/* Right Top: Controls Panel */
 .controls-panel {
-    background: var(--panel-bg);
-    border: var(--border);
-    border-radius: 6px;
-    padding: 10px;
-    overflow-y: auto;
-    max-height: 45%;
-    /* Don't let controls eat all space */
-    font-size: 0.85rem;
+  background: var(--panel-bg);
+  border: var(--border);
+  border-radius: 6px;
+  padding: 12px;
+  /* Auto height based on content, but cap it so outputs still show */
+  max-height: 50%; 
+  overflow-y: auto; /* Scroll only if screen is tiny */
+  display: flex;
+  flex-direction: column;
 }
 
-/* --- OUTPUTS SECTION: Grid to match inputs --- */
+/* Right Bottom: Outputs (1x2 Grid) */
 .outputs-grid {
-    flex: 1;
-    /* Take remaining height */
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    /* Side by side */
-    gap: var(--gap);
+  flex: 1; /* Fills remaining space */
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--gap);
+  min-height: 0;
 }
 
-/* --- SHARED VIEWER STYLES (Inputs & Outputs) --- */
+/* =========================================
+   3. VIEWER CARD (Images/Canvas)
+   ========================================= */
 .viewer-card {
-    background: var(--viewer-bg);
-    border: var(--border);
-    border-radius: 6px;
-    display: flex;
-    flex-direction: column;
-    padding: 6px;
-    min-width: 0;
-    /* Prevents grid blowout */
-    min-height: 0;
+  background: var(--viewer-bg);
+  border: var(--border);
+  border-radius: 6px;
+  display: flex;
+  flex-direction: column;
+  padding: 6px;
+  min-width: 0;
+  min-height: 0;
+  position: relative;
 }
 
 .viewer-header {
-    font-weight: 600;
-    font-size: 0.85rem;
-    margin-bottom: 4px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    color: #495057;
+  font-weight: 600;
+  font-size: 0.85rem;
+  margin-bottom: 4px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: var(--text-dark);
 }
 
-/* The container for the actual canvases */
+.viewer-header select {
+  font-size: 0.75rem;
+  padding: 2px 4px;
+}
+
+/* Canvas Container Area */
 .canvas-row {
-    flex: 1;
-    display: flex;
-    gap: 4px;
-    align-items: center;
-    justify-content: center;
-    min-height: 0;
-    /* Critical for aspect ratio fitting */
+  flex: 1;
+  display: flex;
+  gap: 4px;
+  align-items: center;
+  justify-content: center;
+  min-height: 0;
 }
 
-/* The wrapper around a single canvas (handles scaling & overlay) */
+/* Individual Canvas Wrapper */
 .canvas-wrapper {
-    position: relative;
-    width: 100%;
-    height: 100%;
-    background: #000;
-    overflow: hidden;
-    border-radius: 3px;
-    /* Ensure it doesn't get too small or weirdly stretched */
-    aspect-ratio: 1 / 1;
-    max-height: 100%;
+  position: relative;
+  width: 100%;
+  height: 100%;
+  /* Background transparent so empty states look clean */
+  background: transparent; 
+  border-radius: 3px;
+  overflow: hidden;
 }
 
-/* Actual Canvas Tag */
 .canvas-wrapper canvas {
-    width: 100%;
-    height: 100%;
-    object-fit: contain;
-    /* Keeps logic pixels inside visual box */
-    display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain; /* Ensures aspect ratio is preserved */
+  display: block;
 }
 
 /* Region Overlay (Red Box) */
 .region-overlay {
-    position: absolute;
-    top: 0;
-    left: 0;
-    border: 2px dashed rgba(255, 50, 50, 0.8);
-    background-color: rgba(255, 0, 0, 0.15);
-    pointer-events: none;
-    z-index: 10;
+  position: absolute;
+  top: 0; left: 0;
+  border: 2px dashed rgba(255, 50, 50, 0.8);
+  background-color: rgba(255, 0, 0, 0.15);
+  pointer-events: none;
+  z-index: 10;
 }
 
-/* Controls CSS Helpers */
-.slider-row {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    margin-bottom: 4px;
-}
-
-.slider-row input {
-    flex: 1;
-}
-
-.slider-row label {
-    width: 60px;
-}
-
-
-/* Upload Spinner Overlay */
-.loader-overlay {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(255, 255, 255, 0.7);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 20;
-}
-
-.spinner {
-    width: 30px;
-    height: 30px;
-    border: 4px solid #ccc;
-    border-top-color: #007bff;
-    border-radius: 50%;
-    animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-    to {
-        transform: rotate(360deg);
-    }
-}
-
-/* Mixer Progress Line */
-.progress-line {
-    height: 4px;
-    width: 100%;
-    background: #e9ecef;
-    margin-top: 5px;
-    border-radius: 2px;
-    overflow: hidden;
-    position: relative;
-}
-
-.progress-line::after {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    bottom: 0;
-    width: 40%;
-    background: #28a745;
-    animation: slide 1.5s infinite ease-in-out;
-}
-
-@keyframes slide {
-    0% {
-        left: -40%;
-    }
-
-    100% {
-        left: 100%;
-    }
-}
-
-/* Button Styles */
-.update-btn {
-    width: 100%;
-    padding: 10px;
-    background: #007bff;
-    color: white;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    font-weight: 600;
-    margin-top: auto;
-    /* Push to bottom if flex container */
-}
-
-.update-btn:disabled {
-    background: #6c757d;
-    cursor: not-allowed;
-}
-
-/* Minor Tweaks for Controls Layout */
-.section {
-    border-bottom: 1px solid #eee;
-    padding-bottom: 10px;
-    margin-bottom: 10px;
-}
-
-.section h4 {
-    margin: 0 0 8px 0;
-    font-size: 0.9rem;
-    color: #555;
-}
-
-.sliders-grid {
-    display: flex;
-    gap: 10px;
-}
-
-.column {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-}
-
-.region-controls .row {
-    display: flex;
-    gap: 5px;
-    margin-bottom: 5px;
-}
-
-.region-controls label {
-    font-size: 0.8rem;
-    display: flex;
-    align-items: center;
-}
-
-.region-controls input[type="range"] {
-    flex: 1;
-    margin-left: 5px;
-}
-
-/* --- PLACEHOLDER & EMPTY STATES --- */
-
-/* The container for the "No Image" state */
+/* Placeholder State (No Image) */
 .placeholder-container {
-    width: 100%;
-    height: 100%;
-    background-color: #e9ecef;
-    /* Light grey background */
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    color: #adb5bd;
-    transition: background-color 0.2s;
-    user-select: none;
+  width: 100%;
+  height: 100%;
+  background-color: #f1f3f5;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #adb5bd;
+  transition: background 0.2s;
 }
-
 .placeholder-container:hover {
-    background-color: #dee2e6;
-    /* Slightly darker on hover */
-    color: #6c757d;
+  background-color: #e9ecef;
+  color: var(--text-muted);
 }
-
-/* The SVG Icon styling */
 .placeholder-icon {
-    width: 48px;
-    height: 48px;
-    margin-bottom: 10px;
-    stroke: currentColor;
-    stroke-width: 2;
-    fill: none;
+  width: 40px;
+  height: 40px;
+  margin-bottom: 8px;
+  stroke: currentColor;
+  stroke-width: 2;
+  fill: none;
 }
-
-/* The Text styling */
 .placeholder-text {
-    font-weight: 600;
-    font-size: 0.9rem;
-    background: rgba(0, 0, 0, 0.05);
-    padding: 6px 12px;
-    border-radius: 4px;
+  font-size: 0.8rem;
+  font-weight: 600;
 }
 
-/* The Right-Side (FT) Empty State */
+/* Empty State (FT side when empty) */
 .empty-state {
-    width: 100%;
-    height: 100%;
-    background-color: #f8f9fa;
-    /* Very light, clean grey */
+  width: 100%;
+  height: 100%;
+  background-color: #f8f9fa;
+  border: 1px dashed #dee2e6;
+  border-radius: 4px;
 }
 
-/* Ensure the wrapper doesn't force black background anymore */
-.canvas-wrapper {
-    background: transparent;
+/* =========================================
+   4. COMPACT MIXER CONTROLS
+   ========================================= */
+.mixer-controls {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  gap: 3px;
+}
+
+/* Header */
+.compact-header {
+  border-bottom: 1px solid #dee2e6;
+  padding-bottom: 1px;
+  margin-bottom: 1px;
+}
+.compact-header h3 {
+  margin: 0;
+  font-size: 1rem;
+  color: var(--text-dark);
+}
+
+/* Sections */
+.compact-section {
+  padding-bottom: 1px;
+  border-bottom: 1px solid #f1f3f5;
+}
+.compact-section:last-of-type {
+  border-bottom: none;
+  margin-bottom: auto; /* Push button to bottom */
+}
+
+/* Segmented Control (Output Toggle) */
+.output-toggle {
+  display: flex;
+  width: 100%;
+  background: #e9ecef;
+  border-radius: 4px;
+  padding: 2px;
+}
+.output-toggle button {
+  flex: 1;
+  border: none;
+  background: transparent;
+  padding: 4px;
+  font-size: 0.85rem;
+  cursor: pointer;
+  border-radius: 3px;
+  color: var(--text-muted);
+  font-weight: 600;
+  transition: all 0.2s;
+}
+.output-toggle button.active {
+  background: #ffffff;
+  color: var(--primary);
+  box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+}
+
+/* Grid Layout for Weights */
+.weights-grid {
+  display: grid;
+  /* 3 Cols: Label | Slider | Slider */
+  grid-template-columns: 45px 1fr 1fr; 
+  column-gap: 10px;
+  row-gap: 8px;
+  align-items: center;
+}
+.grid-head {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #868e96;
+  text-align: center;
+}
+.img-label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-dark);
+}
+/* Normalize sliders in grid */
+.weights-grid input[type="range"] {
+  width: 100%;
+  margin: 0;
+  cursor: pointer;
+}
+
+/* Region Grid (2x2) */
+.region-compact-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+.input-group {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+.input-group input[type="range"] {
+  flex: 1;
+  margin: 0;
+  height: 4px; /* Thin track */
+}
+
+.compact-check {
+  font-size: 0.85rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  color: var(--text-dark);
+  cursor: pointer;
+}
+
+/* Update Button */
+.compact-btn {
+  width: 100%;
+  padding: 3px 0;      /* Reduced vertical padding (was 8px) */
+  background: var(--primary);
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.8rem;   /* Smaller text (was 0.9rem) */
+  transition: background 0.2s;
+  margin-top: 1px;     /* Small gap from the section above */
+}
+
+.compact-btn:hover {
+  background-color: #0056b3;
+}
+
+.compact-btn:disabled {
+  background: var(--text-muted);
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+/* =========================================
+   5. LOADERS & ANIMATIONS
+   ========================================= */
+
+/* Viewer Spinner */
+.loader-overlay {
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(255, 255, 255, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 20;
+}
+.spinner {
+  width: 24px;
+  height: 24px;
+  border: 3px solid #dee2e6;
+  border-top-color: var(--primary);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+/* Mixer Progress Bar */
+.progress-line {
+  height: 3px;
+  width: 100%;
+  background: #e9ecef;
+  margin-top: 4px;
+  border-radius: 2px;
+  overflow: hidden;
+  position: relative;
+}
+.progress-line::after {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; bottom: 0;
+  width: 40%;
+  background: #28a745;
+  animation: slide 1.5s infinite ease-in-out;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+@keyframes slide { 
+  0% { left: -40%; }
+  100% { left: 100%; }
 }

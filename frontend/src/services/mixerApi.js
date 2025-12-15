@@ -1,8 +1,8 @@
 const BASE = "http://127.0.0.1:5000/api";
 
-export async function uploadImage(file) {  // Change parameter to accept file
+export async function uploadImage(file) {
     const formData = new FormData();
-    formData.append('file', file);  // Create FormData here
+    formData.append('file', file);
     
     const res = await fetch(`${BASE}/upload`, {
         method: "POST",
@@ -26,11 +26,18 @@ export async function getComponent(data) {
     return await res.json();
 }
 
-export async function mix(data) {
+export async function mix(data, signal = null) {
     const res = await fetch(`${BASE}/mix`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data)
+        body: JSON.stringify(data),
+        signal: signal // Pass the abort signal here
     });
+    
+    if (!res.ok) {
+        // Basic error handling wrapper
+        throw new Error(`Mix failed: ${res.statusText}`);
+    }
+
     return await res.json();
 }
