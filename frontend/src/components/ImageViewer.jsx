@@ -72,8 +72,7 @@ export default function ImageViewer({ id, onChangeImage, regionOverlay }) {
     top: `${(regionOverlay.y / 250) * 100}%`,
     width: `${(regionOverlay.width / 250) * 100}%`, 
     height: `${(regionOverlay.height / 250) * 100}%`,
-    display: regionOverlay.type === 'rect' ? 'block' : 'none'
-  };
+    display: (regionOverlay.enabled && regionOverlay.type === 'rect') ? 'block' : 'none'  };
 
   return (
     <div className="viewer-card" onMouseDown={handleDown} onMouseMove={handleMove} onMouseUp={handleUp} onMouseLeave={handleUp}>
