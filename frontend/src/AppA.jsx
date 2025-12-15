@@ -15,17 +15,18 @@ export default function App() {
   const abortControllerRef = useRef(null);
 
   const [params, setParams] = useState({
-    mode: "magphase",
-    weights_mag: [1, 1, 1, 1],
-    weights_phase: [0, 0, 0, 0],
-    region: { 
-      type: "rect", 
+    // Store component type for each image individually
+    components: ["Magnitude", "Phase", "Magnitude", "Phase"],
+    // Store weight for each image individually
+    weights: [0, 0, 0, 0],
+    region: {
+      type: "rect",
       enabled: false,
-      x: 60, 
-      y: 60, 
-      width: 50, 
-      height: 50, 
-      inner: true 
+      x: 60,
+      y: 60,
+      width: 50,
+      height: 50,
+      inner: true
     },
   });
 
@@ -50,9 +51,9 @@ export default function App() {
     try {
       const res = await mix({
         images_b64: images,
-        mode: params.mode,
-        weights_mag: params.weights_mag,
-        weights_phase: params.weights_phase,
+        mix_mode: "hybrid", // Explicitly invoke hybrid logic
+        components: params.components,
+        weights: params.weights,
         region: params.region,
       }, controller.signal); // Pass the signal to the API
 

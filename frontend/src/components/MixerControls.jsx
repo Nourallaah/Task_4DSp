@@ -1,11 +1,17 @@
 import React from "react";
 
 export default function MixerControls({ params, setParams, onUpdate, activeOutput, setActiveOutput, loading }) {
-  
-  function updateWeight(type, idx, val) {
-    const arr = [...params[type]];
+
+  function updateWeight(idx, val) {
+    const arr = [...params.weights];
     arr[idx] = parseFloat(val);
-    setParams({ ...params, [type]: arr });
+    setParams({ ...params, weights: arr });
+  }
+
+  function updateComponent(idx, val) {
+    const arr = [...params.components];
+    arr[idx] = val;
+    setParams({ ...params, components: arr });
   }
 
   function updateRegion(key, val) {
@@ -14,12 +20,12 @@ export default function MixerControls({ params, setParams, onUpdate, activeOutpu
 
   // Toggle region functionality on/off
   function toggleRegionEnabled(enabled) {
-    setParams({ 
-      ...params, 
-      region: { 
-        ...params.region, 
-        enabled: enabled 
-      } 
+    setParams({
+      ...params,
+      region: {
+        ...params.region,
+        enabled: enabled
+      }
     });
   }
 
@@ -34,111 +40,125 @@ export default function MixerControls({ params, setParams, onUpdate, activeOutpu
       {/* --- Output Selector (Segmented Style) --- */}
       <div className="section compact-section">
         <div className="output-toggle">
-           <button 
-             className={activeOutput === "out1" ? "active" : ""} 
-             onClick={() => setActiveOutput("out1")}>Output 1
-           </button>
-           <button 
-             className={activeOutput === "out2" ? "active" : ""} 
-             onClick={() => setActiveOutput("out2")}>Output 2
-           </button>
+          <button
+            className={activeOutput === "out1" ? "active" : ""}
+            onClick={() => setActiveOutput("out1")}>Output 1
+          </button>
+          <button
+            className={activeOutput === "out2" ? "active" : ""}
+            onClick={() => setActiveOutput("out2")}>Output 2
+          </button>
         </div>
       </div>
 
-      {/* --- Weights (Grid Layout) --- */}
+      {/* --- Weights & Components (Single Column Grid) --- */}
       <div className="section compact-section">
-        <div className="weights-grid">
+        <div className="weights-grid single-col">
           {/* Table Headers */}
-          <span className="grid-head"></span>
-          <span className="grid-head">Magnitude</span>
-          <span className="grid-head">Phase</span>
+          <span className="grid-head">Image</span>
+          <span className="grid-head">Component</span>
+          <span className="grid-head">Weight</span>
 
           {/* Table Rows */}
-          {params.weights_mag.map((wMag, i) => (
-            <React.Fragment key={i}>
-              <span className="img-label">Img {i + 1}</span>
-              
-              {/* Mag Slider */}
-              <input 
-                type="range" min="0" max="1" step="0.1" value={wMag} 
-                onChange={e => updateWeight('weights_mag', i, e.target.value)} 
-                title={`Image ${i+1} Magnitude: ${wMag}`}
-              />
+          {Array.from({ length: 4 }).map((_, i) => {
+            const currentVal = params.weights[i];
+            const currentComp = params.components[i];
 
-              {/* Phase Slider */}
-              <input 
-                type="range" min="0" max="1" step="0.1" value={params.weights_phase[i]} 
-                onChange={e => updateWeight('weights_phase', i, e.target.value)} 
-                title={`Image ${i+1} Phase: ${params.weights_phase[i]}`}
-              />
-            </React.Fragment>
-          ))}
+            return (
+              <React.Fragment key={i}>
+                <span className="img-label">Img {i + 1}</span>
+
+                {/* Component Selector Per Image */}
+                <select
+                  className="mode-select compact-select"
+                  value={currentComp}
+                  onChange={e => updateComponent(i, e.target.value)}
+                >
+                  <option value="Magnitude">Magnitude</option>
+                  <option value="Phase">Phase</option>
+                  <option value="Real">Real</option>
+                  <option value="Imaginary">Imaginary</option>
+                </select>
+
+                {/* Single Slider */}
+                <input
+                  type="range"
+                  min="0"
+                  max="1"
+                  step="0.05"
+                  value={currentVal}
+                  onChange={e => updateWeight(i, e.target.value)}
+                  title={`Image ${i + 1} ${currentComp}: ${currentVal}`}
+                />
+              </React.Fragment>
+            );
+          })}
         </div>
       </div>
 
       {/* --- Region Filter Section with Toggle --- */}
       <div className="section compact-section">
         <label className="checkbox-row compact-check">
-          <input 
-            type="checkbox" 
-            checked={params.region.enabled} 
+          <input
+            type="checkbox"
+            checked={params.region.enabled}
             onChange={e => toggleRegionEnabled(e.target.checked)}
           />
           <span>Enable Region Filter</span>
         </label>
-        
+
         {/* Region controls - conditionally rendered */}
         {params.region.enabled && (
           <>
             <div className="region-compact-grid">
               <div className="input-group">
                 <span>X</span>
-                <input 
-                  type="range" 
-                  max="250" 
-                  value={params.region.x} 
+                <input
+                  type="range"
+                  max="250"
+                  value={params.region.x}
                   onChange={e => updateRegion('x', e.target.value)}
                   disabled={!params.region.enabled}
                 />
               </div>
               <div className="input-group">
                 <span>Y</span>
-                <input 
-                  type="range" 
-                  max="250" 
-                  value={params.region.y} 
+                <input
+                  type="range"
+                  max="250"
+                  value={params.region.y}
                   onChange={e => updateRegion('y', e.target.value)}
                   disabled={!params.region.enabled}
                 />
               </div>
               <div className="input-group">
                 <span>W</span>
-                <input 
-                  type="range" 
-                  max="150" 
-                  value={params.region.width} 
+                <input
+                  type="range"
+                  max="150"
+                  value={params.region.width}
                   onChange={e => updateRegion('width', e.target.value)}
                   disabled={!params.region.enabled}
                 />
               </div>
               <div className="input-group">
                 <span>H</span>
-                <input 
-                  type="range" 
-                  max="150" 
-                  value={params.region.height} 
+                <input
+                  type="range"
+                  max="150"
+                  value={params.region.height}
                   onChange={e => updateRegion('height', e.target.value)}
                   disabled={!params.region.enabled}
                 />
               </div>
             </div>
             <label className="checkbox-row compact-check">
-              <input 
-                type="checkbox" 
-                checked={params.region.inner} 
+              <input
+                type="checkbox"
+                checked={params.region.inner}
                 onChange={e => setParams({
-                  ...params, 
-                  region: {...params.region, inner: e.target.checked}
+                  ...params,
+                  region: { ...params.region, inner: e.target.checked }
                 })}
                 disabled={!params.region.enabled}
               />

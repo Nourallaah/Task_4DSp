@@ -32,3 +32,57 @@ class FourierMixer:
         r = sum(w * rp for w, rp in zip(w_real, real_parts))
         im = sum(w * ip for w, ip in zip(w_imag, imag_parts))
         return r + 1j * im
+
+    def mix_hybrid(self, processors, components, weights, mask=None):
+        # Initialize accumulators
+        # processors is list of ImageProcessor objects
+        # We need the shape from the first valid processor
+        if not processors:
+            return np.array([])
+        
+        # Assumption: processors are already resized to same shape
+        shape = processors[0].fft.shape
+        dtype = processors[0].fft.dtype
+        
+        accum_mag = np.zeros(shape, dtype=float)
+        accum_phase = np.zeros(shape, dtype=float)
+        accum_real = np.zeros(shape, dtype=float)
+        accum_imag = np.zeros(shape, dtype=float)
+        
+        # Track if we have any contributions to Mag/Phase groups
+        has_mag = False
+        has_phase = False
+        
+        for p, comp, w in zip(processors, components, weights):
+            if p is None: continue
+            
+            if comp == "Magnitude":
+                accum_mag += w * np.abs(p.fft)
+                has_mag = True
+            elif comp == "Phase":
+                accum_phase += w * p.get_phase_array()
+                has_phase = True
+            elif comp == "Real":
+                accum_real += w * p.fft.real
+            elif comp == "Imaginary":
+                accum_imag += w * p.fft.imag
+                
+        # Reconstruction
+        # Part 1: Mag/Phase
+        # Note: If we have Phase contributions but NO Mag contributions, 
+        # standard behavior is strictly 0 mag -> result 0.
+        # But if we have Mag but no Phase -> Phase 0.
+        part1 = np.zeros(shape, dtype=complex)
+        if has_mag or has_phase:
+             part1 = accum_mag * np.exp(1j * accum_phase)
+             
+        # Part 2: Real/Imag
+        part2 = accum_real + 1j * accum_imag
+        
+        # Combine
+        total = part1 + part2
+        
+        if mask is not None:
+            total = total * mask
+            
+        return total
