@@ -46,11 +46,6 @@ def mix(mreq: MixRequest):
                 mreq.region.width,
                 mreq.region.height
             )
-        else:
-            mask = MaskGenerator.low_freq_central(
-                (min_h, min_w),
-                mreq.region.radius
-            )
 
         if not mreq.region.inner:
             mask = 1.0 - mask
