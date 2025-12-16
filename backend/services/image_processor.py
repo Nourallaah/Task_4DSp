@@ -2,6 +2,8 @@ from PIL import Image, ImageOps
 import numpy as np
 from io import BytesIO
 import pillow_heif
+import base64
+from PIL import Image
 
 pillow_heif.register_heif_opener()
 
@@ -107,3 +109,8 @@ class ImageProcessor:
         img = np.real(img)
         img = np.clip(img, 0, 255).astype('uint8')
         return img
+    
+    def pil_to_base64_png(im: Image.Image) -> str:
+        buf = BytesIO()
+        im.save(buf, format="PNG")
+        return "data:image/png;base64," + base64.b64encode(buf.getvalue()).decode()

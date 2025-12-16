@@ -9,14 +9,6 @@ import numpy as np
 
 router = APIRouter()
 
-
-def pil_to_b64(im: Image.Image) -> str:
-    from io import BytesIO
-    buf = BytesIO()
-    im.save(buf, format="PNG")
-    return "data:image/png;base64," + base64.b64encode(buf.getvalue()).decode()
-
-
 @router.post("/mix", response_model=MixResponse)
 def mix(mreq: MixRequest):
     # 1. Load and standardize images
@@ -80,4 +72,4 @@ def mix(mreq: MixRequest):
     )
 
     out_img = ImageProcessor.reconstruct_from_fft(out_fft)
-    return MixResponse(output_b64=pil_to_b64(Image.fromarray(out_img)))
+    return MixResponse(output_b64=ImageProcessor.pil_to_base64_png(Image.fromarray(out_img)))
