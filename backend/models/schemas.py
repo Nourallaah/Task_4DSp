@@ -13,13 +13,7 @@ class Region(BaseModel):
 
 class MixRequest(BaseModel):
     images_b64: List[str] 
-    mix_mode: str = "magphase"  # "magphase", "realimag", "spatial", or "hybrid"
-    weights_global: List[float] = [0,0,0,0] # For spatial mixing
-    weights_mag: List[float] = [0,0,0,0]
-    weights_phase: List[float] = [0,0,0,0]
-    weights_real: List[float] = [0,0,0,0]
-    weights_imag: List[float] = [0,0,0,0]
-    # New fields for per-image mixing
+    # fields for per-image mixing
     components: List[str] = ["Magnitude", "Magnitude", "Magnitude", "Magnitude"]
     weights: List[float] = [0,0,0,0]
     region: Region = Region()

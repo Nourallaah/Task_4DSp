@@ -51,7 +51,6 @@ export default function App() {
     try {
       const res = await mix({
         images_b64: images,
-        mix_mode: "hybrid", // Explicitly invoke hybrid logic
         components: params.components,
         weights: params.weights,
         region: params.region,
