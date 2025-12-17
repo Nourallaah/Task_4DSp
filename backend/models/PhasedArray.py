@@ -236,6 +236,94 @@ class PhasedArray:
         
         return theta_grid, phi_grid, magnitude_grid
     
+    def compute_spatial_interference_pattern(
+        self,
+        weights: Optional[np.ndarray] = None,
+        x_range: Optional[Tuple[float, float]] = None,
+        y_range: Optional[Tuple[float, float]] = None,
+        resolution: int = 100
+    ) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
+        """
+        Compute 2D spatial interference pattern showing field strength in space
+        
+        Args:
+            weights: Beamforming weights (default: uniform)
+            x_range: X axis range in wavelengths (default: auto-scaled)
+            y_range: Y axis range in wavelengths (default: auto-scaled)
+            resolution: Grid resolution (default: 100x100)
+            
+        Returns:
+            Tuple of (x_grid, y_grid, magnitude_grid)
+        """
+        if weights is None:
+            weights = np.ones(self.num_elements, dtype=complex)
+        
+        # Normalize weights
+        weights = weights / np.max(np.abs(weights))
+        
+        # Auto-scale range based on array geometry if not provided
+        if x_range is None:
+            x_positions = self.element_positions[:, 0] / self.wavelength
+            x_span = max(np.max(x_positions) - np.min(x_positions), 1.0)
+            x_center = (np.max(x_positions) + np.min(x_positions)) / 2
+            x_range = (x_center - x_span * 2, x_center + x_span * 2)
+        
+        if y_range is None:
+            # Default: symmetric range around array elements
+            y_range = (-3.0, 8.0)  # Show field propagating forward (positive Y)
+        
+        # Create spatial grid
+        x = np.linspace(x_range[0], x_range[1], resolution)
+        y = np.linspace(y_range[0], y_range[1], resolution)
+        x_grid, y_grid = np.meshgrid(x, y)
+        
+        # Convert grid to physical coordinates (in wavelengths)
+        x_phys = x_grid * self.wavelength
+        y_phys = y_grid * self.wavelength
+        
+        # Initialize field magnitude
+        field_magnitude = np.zeros_like(x_grid)
+        
+        # Wave number
+        k = 2 * np.pi / self.wavelength
+        
+        # Calculate field at each point by summing contributions from all elements
+        total_field = np.zeros_like(x_grid, dtype=complex)
+        
+        for elem_idx in range(self.num_elements):
+            elem_pos = self.element_positions[elem_idx]
+            
+            # Distance from element to each grid point
+            dx = x_phys - elem_pos[0]
+            dy = y_phys - elem_pos[1]
+            dz = 0 - elem_pos[2]  # Assume observation plane at z=0
+            
+            distance = np.sqrt(dx**2 + dy**2 + dz**2)
+            
+            # Avoid division by zero at element positions
+            distance = np.maximum(distance, self.wavelength / 100)
+            
+            # Complex field contribution (plane wave approximation for clearer interference)
+            # Use negative phase for proper interference visualization
+            # Remove 1/r falloff to show pure interference pattern
+            element_field = weights[elem_idx] * np.exp(-1j * k * distance)
+            
+            # Accumulate complex field
+            total_field += element_field
+        
+        # Calculate magnitude (field strength)
+        field_magnitude = np.abs(total_field)
+        
+        # Square the magnitude for better contrast (intensity pattern)
+        field_magnitude = field_magnitude ** 2
+        
+        # Normalize to [0, 1]
+        max_val = np.max(field_magnitude)
+        if max_val > 0:
+            field_magnitude = field_magnitude / max_val
+        
+        return x_grid, y_grid, field_magnitude
+    
     def set_geometry(
         self,
         array_type: str,

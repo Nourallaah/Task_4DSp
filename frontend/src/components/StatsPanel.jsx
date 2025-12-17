@@ -68,24 +68,7 @@ export default function StatsPanel({ params, data, onLoadScenario, onResetToDefa
                     </div>
                 </div>
 
-                {/* Pattern Statistics (if data available) */}
-                {data && (
-                    <div className="stats-section">
-                        <h3>Pattern Statistics</h3>
-                        <div className="stat-item">
-                            <span className="stat-label">Max Gain:</span>
-                            <span className="stat-value">{data.maxGain || "N/A"} dB</span>
-                        </div>
-                        <div className="stat-item">
-                            <span className="stat-label">Beamwidth:</span>
-                            <span className="stat-value">{data.beamwidth || "N/A"}°</span>
-                        </div>
-                        <div className="stat-item">
-                            <span className="stat-label">Side Lobe:</span>
-                            <span className="stat-value">{data.sideLobeLevel || "N/A"} dB</span>
-                        </div>
-                    </div>
-                )}
+                {/* Pattern Statistics removed as per request */}
 
                 {/* Scenario Info */}
                 <div className="stats-section">

@@ -158,6 +158,48 @@ class BeamformingService:
             "pattern_type": "3d"
         }
     
+    def calculate_interference_pattern(
+        self,
+        steering_azimuth: float = 0.0,
+        steering_elevation: float = 0.0,
+        resolution: int = 100
+    ) -> Dict:
+        """
+        Calculate 2D spatial interference pattern
+        
+        Args:
+            steering_azimuth: Azimuth steering angle in degrees
+            steering_elevation: Elevation steering angle in degrees
+            resolution: Grid resolution (default: 100x100)
+            
+        Returns:
+            Dictionary with spatial interference pattern data
+        """
+        if self.phased_array is None:
+            raise ValueError("Phased array not initialized. Call create_phased_array() first.")
+        
+        # Calculate steering weights
+        weights = self.phased_array.calculate_steering_vector(
+            steering_azimuth,
+            phi=steering_elevation
+        )
+        
+        # Compute spatial interference pattern
+        x_grid, y_grid, magnitude_grid = self.phased_array.compute_spatial_interference_pattern(
+            weights=weights,
+            resolution=resolution
+        )
+        
+        return {
+            "x_grid": x_grid.tolist(),
+            "y_grid": y_grid.tolist(),
+            "magnitude": magnitude_grid.tolist(),
+            "steering_azimuth": steering_azimuth,
+            "steering_elevation": steering_elevation,
+            "pattern_type": "interference",
+            "resolution": resolution
+        }
+    
     def load_scenario_preset(self, preset_name: str) -> Dict:
         """
         Load a predefined scenario preset
@@ -220,5 +262,6 @@ class BeamformingService:
         return {
             "array_geometry": self.calculate_array_geometry(),
             "azimuth_pattern": self.calculate_azimuth_pattern(steering_azimuth),
-            "pattern_3d": self.calculate_3d_pattern(steering_azimuth, steering_elevation)
+            "pattern_3d": self.calculate_3d_pattern(steering_azimuth, steering_elevation),
+            "interference_pattern": self.calculate_interference_pattern(steering_azimuth, steering_elevation)
         }

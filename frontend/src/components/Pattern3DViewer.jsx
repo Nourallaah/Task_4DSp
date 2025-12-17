@@ -7,7 +7,7 @@ import ThreeDPatternRenderer from "./ThreeDPatternRenderer";
  */
 export default function Pattern3DViewer({ data, loading }) {
     const canvasRef = useRef(null);
-    const [viewMode, setViewMode] = useState("azimuth-pattern");
+    const [viewMode, setViewMode] = useState("array-geometry");
 
     // Interactive controls state
     const [zoomLevel, setZoomLevel] = useState(1.0);
@@ -52,6 +52,8 @@ export default function Pattern3DViewer({ data, loading }) {
                 return;
             } else if (viewMode === "array-geometry" && data.array_geometry) {
                 renderArrayGeometry(ctx, canvas, data.array_geometry, zoomLevel, rotation);
+            } else if (viewMode === "interference-plot" && data.interference_pattern) {
+                renderInterferencePattern(ctx, canvas, data.interference_pattern, data.array_geometry, zoomLevel);
             } else if (viewMode === "azimuth-pattern" && data.azimuth_pattern) {
                 renderAzimuthPattern(ctx, canvas, data.azimuth_pattern, zoomLevel, rotation);
             } else {
@@ -117,6 +119,7 @@ export default function Pattern3DViewer({ data, loading }) {
     const getTitle = () => {
         switch (viewMode) {
             case "array-geometry": return "Array Geometry";
+            case "interference-plot": return "Interference Pattern";
             case "azimuth-pattern": return "Azimuth Pattern";
             case "3d-pattern": return "3D Directivity Pattern";
             default: return "Visualization";
@@ -133,6 +136,12 @@ export default function Pattern3DViewer({ data, loading }) {
                         onClick={() => setViewMode("array-geometry")}
                     >
                         Array Geometry
+                    </button>
+                    <button
+                        className={viewMode === "interference-plot" ? "mode-btn active" : "mode-btn"}
+                        onClick={() => setViewMode("interference-plot")}
+                    >
+                        Interference Plot
                     </button>
                     <button
                         className={viewMode === "azimuth-pattern" ? "mode-btn active" : "mode-btn"}
@@ -231,6 +240,13 @@ function renderArrayGeometry(ctx, canvas, geometryData, zoom, rotation) {
     ctx.moveTo(centerX, margin);
     ctx.lineTo(centerX, canvas.height - margin);
     ctx.stroke();
+
+    // Draw axis labels
+    ctx.fillStyle = "#666";
+    ctx.font = "12px Arial";
+    ctx.textAlign = "center";
+    ctx.fillText("X", canvas.width - margin + 10, centerY + 4);
+    ctx.fillText("Y", centerX, margin - 10);
 
     // Draw elements
     elements.forEach((elem, idx) => {
@@ -409,4 +425,178 @@ function render3DPattern(ctx, canvas, patternData, zoom, rotation) {
     ctx.font = "11px Arial";
     ctx.textAlign = "center";
     ctx.fillText("Note: Full 3D rendering requires WebGL (future enhancement)", centerX, canvas.height - 20);
+}
+
+/**
+ * Render spatial interference pattern (2D heatmap)
+ */
+function renderInterferencePattern(ctx, canvas, interferenceData, geometryData, zoom) {
+    const { x_grid, y_grid, magnitude } = interferenceData;
+
+    if (!x_grid || !y_grid || !magnitude || magnitude.length === 0) return;
+
+    const margin = 60;
+    const plotWidth = canvas.width - 2 * margin;
+    const plotHeight = canvas.height - 2 * margin;
+
+    const rows = magnitude.length;
+    const cols = magnitude[0].length;
+
+    // Get data ranges
+    const xMin = x_grid[0][0];
+    const xMax = x_grid[0][cols - 1];
+    const yMin = y_grid[0][0];
+    const yMax = y_grid[rows - 1][0];
+
+    const xRange = xMax - xMin;
+    const yRange = yMax - yMin;
+
+    // Calculate pixel size for each data point
+    const pixelWidth = plotWidth / cols;
+    const pixelHeight = plotHeight / rows;
+
+    // Draw heatmap using grayscale (white = high, black = low)
+    for (let i = 0; i < rows; i++) {
+        for (let j = 0; j < cols; j++) {
+            const value = magnitude[i][j];
+
+            // Grayscale: white (1.0) to black (0.0)
+            const grayValue = Math.floor(value * 255);
+            ctx.fillStyle = `rgb(${grayValue}, ${grayValue}, ${grayValue})`;
+
+            // Calculate pixel position
+            const x = margin + j * pixelWidth;
+            const y = canvas.height - margin - (i + 1) * pixelHeight;
+
+            ctx.fillRect(x, y, Math.ceil(pixelWidth) + 1, Math.ceil(pixelHeight) + 1);
+        }
+    }
+
+    // Draw array elements overlay if available
+    if (geometryData && geometryData.elements) {
+        const elements = geometryData.elements;
+
+        elements.forEach((elem, idx) => {
+            // Convert element position to canvas coordinates
+            const elemX_wl = elem.x / (3e8 / 1e9); // Convert to wavelengths (approximate)
+            const elemY_wl = elem.y / (3e8 / 1e9);
+
+            // Map to canvas coordinates
+            const canvasX = margin + ((elemX_wl - xMin) / xRange) * plotWidth;
+            const canvasY = canvas.height - margin - ((elemY_wl - yMin) / yRange) * plotHeight;
+
+            // Check if element is within visible range
+            if (canvasX >= margin && canvasX <= canvas.width - margin &&
+                canvasY >= margin && canvasY <= canvas.height - margin) {
+
+                // Draw element as cyan dot for visibility on grayscale
+                ctx.fillStyle = "#00FFFF";
+                ctx.strokeStyle = "#0088CC";
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.arc(canvasX, canvasY, 4, 0, 2 * Math.PI);
+                ctx.fill();
+                ctx.stroke();
+            }
+        });
+    }
+
+    // Draw axes
+    ctx.strokeStyle = "#666";
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.rect(margin, margin, plotWidth, plotHeight);
+    ctx.stroke();
+
+    // Draw axis labels
+    ctx.fillStyle = "#333";
+    ctx.font = "12px Arial";
+    ctx.textAlign = "center";
+
+    // X-axis label
+    ctx.fillText("X (wavelengths)", canvas.width / 2, canvas.height - 15);
+
+    // Y-axis label
+    ctx.save();
+    ctx.translate(15, canvas.height / 2);
+    ctx.rotate(-Math.PI / 2);
+    ctx.fillText("Y (wavelengths)", 0, 0);
+    ctx.restore();
+
+    // Draw tick marks and values
+    ctx.fillStyle = "#666";
+    ctx.font = "10px Arial";
+    ctx.textAlign = "center";
+
+    // X-axis ticks
+    const numXTicks = 5;
+    for (let i = 0; i <= numXTicks; i++) {
+        const x = margin + (i / numXTicks) * plotWidth;
+        const xValue = xMin + (i / numXTicks) * xRange;
+
+        ctx.beginPath();
+        ctx.moveTo(x, canvas.height - margin);
+        ctx.lineTo(x, canvas.height - margin + 5);
+        ctx.stroke();
+
+        ctx.fillText(xValue.toFixed(1), x, canvas.height - margin + 18);
+    }
+
+    // Y-axis ticks
+    ctx.textAlign = "right";
+    const numYTicks = 5;
+    for (let i = 0; i <= numYTicks; i++) {
+        const y = canvas.height - margin - (i / numYTicks) * plotHeight;
+        const yValue = yMin + (i / numYTicks) * yRange;
+
+        ctx.beginPath();
+        ctx.moveTo(margin - 5, y);
+        ctx.lineTo(margin, y);
+        ctx.stroke();
+
+        ctx.fillText(yValue.toFixed(1), margin - 8, y + 4);
+    }
+
+    // Draw colorbar legend
+    const colorbarWidth = 20;
+    const colorbarHeight = plotHeight / 2;
+    const colorbarX = canvas.width - margin + 30;
+    const colorbarY = margin + plotHeight / 4;
+
+    // Draw gradient
+    for (let i = 0; i < colorbarHeight; i++) {
+        const value = 1.0 - (i / colorbarHeight); // Top = 1.0 (white), bottom = 0.0 (black)
+        const grayValue = Math.floor(value * 255);
+        ctx.fillStyle = `rgb(${grayValue}, ${grayValue}, ${grayValue})`;
+        ctx.fillRect(colorbarX, colorbarY + i, colorbarWidth, 1);
+    }
+
+    // Colorbar border
+    ctx.strokeStyle = "#666";
+    ctx.lineWidth = 1;
+    ctx.strokeRect(colorbarX, colorbarY, colorbarWidth, colorbarHeight);
+
+    // Colorbar labels
+    ctx.fillStyle = "#333";
+    ctx.font = "10px Arial";
+    ctx.textAlign = "left";
+    ctx.fillText("1.0", colorbarX + colorbarWidth + 5, colorbarY + 4);
+    ctx.fillText("0.5", colorbarX + colorbarWidth + 5, colorbarY + colorbarHeight / 2 + 4);
+    ctx.fillText("0.0", colorbarX + colorbarWidth + 5, colorbarY + colorbarHeight + 4);
+
+    ctx.textAlign = "center";
+    ctx.save();
+    ctx.translate(colorbarX + colorbarWidth / 2, colorbarY - 10);
+    ctx.font = "11px Arial";
+    ctx.fillText("Field", 0, 0);
+    ctx.restore();
+
+    // Draw title
+    ctx.fillStyle = "#333";
+    ctx.font = "14px Arial";
+    ctx.textAlign = "center";
+    const steeringInfo = interferenceData.steering_azimuth !== undefined
+        ? ` (Steering: ${interferenceData.steering_azimuth}°)`
+        : "";
+    ctx.fillText(`Spatial Interference Pattern${steeringInfo}`, canvas.width / 2, 25);
 }
