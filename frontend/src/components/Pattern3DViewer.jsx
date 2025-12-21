@@ -373,61 +373,6 @@ function renderAzimuthPattern(ctx, canvas, patternData, zoom, rotation) {
 }
 
 /**
- * Render 3D pattern (simplified 2D projection)
- */
-function render3DPattern(ctx, canvas, patternData, zoom, rotation) {
-    const { theta, phi, magnitude } = patternData;
-
-    if (!theta || !phi || !magnitude || theta.length === 0) return;
-
-    const centerX = canvas.width / 2;
-    const centerY = canvas.height / 2;
-    const size = Math.min(canvas.width, canvas.height) - 120;
-
-    // Draw title
-    ctx.fillStyle = "#333";
-    ctx.font = "14px Arial";
-    ctx.textAlign = "center";
-    ctx.fillText("3D Radiation Pattern", centerX, 30);
-    ctx.fillText(`(Az: ${patternData.steering_azimuth}°, El: ${patternData.steering_elevation}°)`, centerX, 50);
-
-    // Apply zoom and rotation
-    const radius = (size / 3) * zoom;
-    const azRad = (patternData.steering_azimuth + rotation) * Math.PI / 180;
-
-    ctx.save();
-    ctx.translate(centerX, centerY);
-
-    // Main lobe
-    ctx.fillStyle = "rgba(33, 150, 243, 0.3)";
-    ctx.strokeStyle = "#2196F3";
-    ctx.lineWidth = 2;
-
-    ctx.beginPath();
-    ctx.ellipse(0, 0, radius, radius * 0.6, azRad, 0, 2 * Math.PI);
-    ctx.fill();
-    ctx.stroke();
-
-    ctx.restore();
-
-    // Draw axes
-    ctx.strokeStyle = "#666";
-    ctx.lineWidth = 1;
-    ctx.beginPath();
-    ctx.moveTo(centerX - size / 2, centerY);
-    ctx.lineTo(centerX + size / 2, centerY);
-    ctx.moveTo(centerX, centerY - size / 2);
-    ctx.lineTo(centerX, centerY + size / 2);
-    ctx.stroke();
-
-    // Labels
-    ctx.fillStyle = "#666";
-    ctx.font = "11px Arial";
-    ctx.textAlign = "center";
-    ctx.fillText("Note: Full 3D rendering requires WebGL (future enhancement)", centerX, canvas.height - 20);
-}
-
-/**
  * Render spatial interference pattern (2D heatmap)
  */
 function renderInterferencePattern(ctx, canvas, interferenceData, geometryData, zoom) {

@@ -35,7 +35,7 @@ class BeamformingService:
             num_elements: Number of antenna elements
             element_spacing: Spacing in wavelengths
             frequency: Operating frequency in Hz
-            array_type: "linear", "curved", or "planar"
+            array_type: "linear" or "curved"
             curvature: Curvature parameter for curved arrays
             
         Returns:

@@ -22,7 +22,7 @@ class ArrayConfigRequest(BaseModel):
     num_elements: int = Field(default=8, ge=2, le=512, description="Number of array elements")
     element_spacing: float = Field(default=0.5, gt=0, le=2, description="Element spacing in wavelengths")
     frequency: float = Field(default=1e9, gt=0, description="Operating frequency in Hz")
-    array_type: str = Field(default="linear", description="Array type: linear, curved, or planar")
+    array_type: str = Field(default="linear", description="Array type: linear or curved")
     curvature: float = Field(default=0.0, ge=0, le=1, description="Curvature parameter for curved arrays")
 
 

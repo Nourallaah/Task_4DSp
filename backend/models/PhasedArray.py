@@ -17,7 +17,7 @@ class PhasedArray:
         num_elements: int = 8,
         element_spacing: float = 0.5,  # in wavelengths
         frequency: float = 1e9,  # Hz
-        array_type: str = "linear",  # "linear", "planar", or "curved"
+        array_type: str = "linear",  # "linear" or "curved"
         curvature: float = 0.0  # curvature parameter for curved arrays (0 = linear)
     ):
         """
@@ -27,7 +27,7 @@ class PhasedArray:
             num_elements: Number of antenna elements
             element_spacing: Spacing between elements (in wavelengths)
             frequency: Operating frequency in Hz
-            array_type: Type of array ("linear", "planar", or "curved")
+            array_type: Type of array ("linear" or "curved")
             curvature: Curvature parameter for curved arrays (radians per element)
         """
         self.num_elements = num_elements
@@ -65,18 +65,6 @@ class PhasedArray:
                 positions[:, 1] = radius * (1 - np.cos(angles))
                 
             return positions
-        elif self.array_type == "planar":
-            # Planar array in x-y plane
-            num_rows = int(np.sqrt(self.num_elements))
-            num_cols = int(np.ceil(self.num_elements / num_rows))
-            positions = []
-            for i in range(num_rows):
-                for j in range(num_cols):
-                    if len(positions) < self.num_elements:
-                        x = j * self.element_spacing * self.wavelength
-                        y = i * self.element_spacing * self.wavelength
-                        positions.append([x, y, 0])
-            return np.array(positions)
         else:
             raise ValueError(f"Unknown array type: {self.array_type}")
     
@@ -333,7 +321,7 @@ class PhasedArray:
         Update array geometry and recalculate positions
         
         Args:
-            array_type: "linear", "curved", or "planar"
+            array_type: "linear" or "curved"
             curvature: Curvature parameter for curved arrays
         """
         self.array_type = array_type

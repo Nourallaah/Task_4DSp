@@ -63,7 +63,7 @@ class Scenario:
             num_elements: Number of antenna elements
             element_spacing: Spacing between elements (in wavelengths)
             frequency: Operating frequency in Hz
-            array_type: Type of array ("linear" or "planar")
+            array_type: Type of array ("linear" or "curved")
         """
         self.name = name
         self.description = description
