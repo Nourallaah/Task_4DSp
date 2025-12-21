@@ -2,10 +2,10 @@ import React, { useRef, useEffect, useState } from "react";
 import ThreeDPatternRenderer from "./ThreeDPatternRenderer";
 
 /**
- * Pattern3DViewer - Center panel with radiation pattern visualization
- * Renders Array Geometry, Azimuth Pattern, or 3D Pattern based on viewMode
+ * Visualizer - Center panel with radiation pattern visualization
+ * Renders Array Geometry, Azimuth Pattern, Interference Pattern, or 3D Pattern based on viewMode
  */
-export default function Pattern3DViewer({ data, loading }) {
+export default function Visualizer({ data, loading }) {
     const canvasRef = useRef(null);
     const [viewMode, setViewMode] = useState("array-geometry");
 

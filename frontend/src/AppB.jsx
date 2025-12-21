@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import ControlPanel from "./components/ControlPanel";
-import Pattern3DViewer from "./components/Pattern3DViewer";
+import Visualizer from "./components/Visualizer";
 import StatsPanel from "./components/StatsPanel";
 import { calculateAllVisualizations, loadScenarioPreset } from "./services/beamformingApi";
 import "./beamforming.css";
@@ -161,7 +161,7 @@ export default function AppB() {
 
             {/* Center Panel - 3D Visualization */}
             <div className="center-panel">
-                <Pattern3DViewer
+                <Visualizer
                     data={visualizationData}
                     loading={loading}
                 />
