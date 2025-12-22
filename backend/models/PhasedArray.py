@@ -101,29 +101,29 @@ class PhasedArray:
         
         return steering_vector
     
-    def apply_weights(
-        self, 
-        signal: np.ndarray, 
-        weights: np.ndarray
-    ) -> np.ndarray:
-        """
-        Apply beamforming weights to the received signal
+    # def apply_weights(
+    #     self, 
+    #     signal: np.ndarray, 
+    #     weights: np.ndarray
+    # ) -> np.ndarray:
+    #     """
+    #     Apply beamforming weights to the received signal
         
-        Args:
-            signal: Received signal array (num_elements x num_samples)
-            weights: Complex weights for each element
+    #     Args:
+    #         signal: Received signal array (num_elements x num_samples)
+    #         weights: Complex weights for each element
             
-        Returns:
-            Beamformed output signal
-        """
-        if len(weights) != self.num_elements:
-            raise ValueError(f"Number of weights ({len(weights)}) must match number of elements ({self.num_elements})")
+    #     Returns:
+    #         Beamformed output signal
+    #     """
+    #     if len(weights) != self.num_elements:
+    #         raise ValueError(f"Number of weights ({len(weights)}) must match number of elements ({self.num_elements})")
         
-        # Apply weights and sum across elements
-        weighted_signal = signal * weights[:, np.newaxis]
-        output = np.sum(weighted_signal, axis=0)
+    #     # Apply weights and sum across elements
+    #     weighted_signal = signal * weights[:, np.newaxis]
+    #     output = np.sum(weighted_signal, axis=0)
         
-        return output
+    #     return output
     
     def calculate_array_factor(
         self, 
