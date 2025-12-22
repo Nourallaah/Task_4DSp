@@ -4,15 +4,6 @@ class FourierMixer:
     def __init__(self, ffts):
         self.ffts = ffts
 
-    def apply_region(self, fft_list, mask):
-        return [fft * mask for fft in fft_list]
-
-    def mix_by_weights(self, weights):
-        res = np.zeros_like(self.ffts[0], dtype=complex)
-        for w, f in zip(weights, self.ffts):
-            res += w * f
-        return res
-
     # def mix_mag_phase(self, mag_list, phase_list, w_mag, w_phase, mask=None):
     #     # mag_list & phase_list are arrays (not complex)
     #     # combine weighted mags & phases

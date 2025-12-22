@@ -53,7 +53,6 @@ def mix(mreq: MixRequest):
         # No mask - full image mixing (mask of all 1s)
         mask = np.ones((min_h, min_w), dtype=np.float32)
 
-    # 4. Fourier mag+phase or real+imag mixing
     # 4. Hybrid Mixing (Unified Logic)
     # We prioritize the new `components` and `weights` fields.
     # We pass the full list of processors (including Nones) to mix_hybrid

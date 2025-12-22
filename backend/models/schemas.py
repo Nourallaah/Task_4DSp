@@ -3,7 +3,7 @@ from typing import List, Optional
 
 class Region(BaseModel):
     type: str = "rect"
-    enabled: bool = False  # Add this field
+    enabled: bool = False  
     x: Optional[int] = 60
     y: Optional[int] = 60
     width: Optional[int] = 50

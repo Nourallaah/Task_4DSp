@@ -8,7 +8,3 @@ export function drawBase64ToCanvas(b64, canvas) {
   };
   img.src = b64;
 }
-
-export function canvasToBase64(canvas) {
-  return canvas.toDataURL("image/png");
-}

@@ -97,9 +97,9 @@ class ImageProcessor:
         im = 255 * (im / (im.max() + 1e-9))
         return Image.fromarray(im.astype('uint8')).convert("L")
 
-    def apply_mask(self, mask):
-        # mask is float array same shape
-        self.fft = self.fft * mask
+    # def apply_mask(self, mask):
+    #     # mask is float array same shape
+    #     self.fft = self.fft * mask
 
     @staticmethod
     def reconstruct_from_fft(fft_array):
