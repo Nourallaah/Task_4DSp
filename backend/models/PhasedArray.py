@@ -30,43 +30,110 @@ class PhasedArray:
             array_type: Type of array ("linear" or "curved")
             curvature: Curvature parameter for curved arrays (radians per element)
         """
-        self.num_elements = num_elements
-        self.element_spacing = element_spacing
-        self.frequency = frequency
-        self.array_type = array_type
-        self.curvature = curvature
-        self.wavelength = 3e8 / frequency  # c / f
-        self.element_positions = self._calculate_positions()
+        self._num_elements = num_elements
+        self._element_spacing = element_spacing
+        self._frequency = frequency
+        self._array_type = array_type
+        self._curvature = curvature
+        self._wavelength = 3e8 / frequency  # c / f
+        self._element_positions = self._calculate_positions()
+    
+    # Property getters and setters
+    @property
+    def num_elements(self) -> int:
+        """Get the number of antenna elements"""
+        return self._num_elements
+    
+    @num_elements.setter
+    def num_elements(self, value: int) -> None:
+        """Set the number of antenna elements and recalculate positions"""
+        self._num_elements = value
+        self._element_positions = self._calculate_positions()
+    
+    @property
+    def element_spacing(self) -> float:
+        """Get the element spacing in wavelengths"""
+        return self._element_spacing
+    
+    @element_spacing.setter
+    def element_spacing(self, value: float) -> None:
+        """Set the element spacing and recalculate positions"""
+        self._element_spacing = value
+        self._element_positions = self._calculate_positions()
+    
+    @property
+    def frequency(self) -> float:
+        """Get the operating frequency in Hz"""
+        return self._frequency
+    
+    @frequency.setter
+    def frequency(self, value: float) -> None:
+        """Set the frequency and recalculate wavelength and positions"""
+        self._frequency = value
+        self._wavelength = 3e8 / value
+        self._element_positions = self._calculate_positions()
+    
+    @property
+    def array_type(self) -> str:
+        """Get the array type (linear or curved)"""
+        return self._array_type
+    
+    @array_type.setter
+    def array_type(self, value: str) -> None:
+        """Set the array type and recalculate positions"""
+        self._array_type = value
+        self._element_positions = self._calculate_positions()
+    
+    @property
+    def curvature(self) -> float:
+        """Get the curvature parameter"""
+        return self._curvature
+    
+    @curvature.setter
+    def curvature(self, value: float) -> None:
+        """Set the curvature and recalculate positions"""
+        self._curvature = value
+        self._element_positions = self._calculate_positions()
+    
+    @property
+    def wavelength(self) -> float:
+        """Get the wavelength (read-only, computed from frequency)"""
+        return self._wavelength
+    
+    @property
+    def element_positions(self) -> np.ndarray:
+        """Get the element positions (read-only, computed from geometry)"""
+        return self._element_positions
         
     def _calculate_positions(self) -> np.ndarray:
         """Calculate the physical positions of array elements"""
-        if self.array_type == "linear":
+        if self._array_type == "linear":
             # Linear array along x-axis
-            positions = np.zeros((self.num_elements, 3))
-            positions[:, 0] = np.arange(self.num_elements) * self.element_spacing * self.wavelength
+            positions = np.zeros((self._num_elements, 3))
+            positions[:, 0] = np.arange(self._num_elements) * self._element_spacing * self._wavelength
             return positions
-        elif self.array_type == "curved":
+        elif self._array_type == "curved":
             # Curved array (arc shape)
-            positions = np.zeros((self.num_elements, 3))
-            spacing = self.element_spacing * self.wavelength
+            positions = np.zeros((self._num_elements, 3))
+            spacing = self._element_spacing * self._wavelength
             
-            if self.curvature == 0:
+            if self._curvature == 0:
                 # Fallback to linear if curvature is zero
-                positions[:, 0] = np.arange(self.num_elements) * spacing
+                positions[:, 0] = np.arange(self._num_elements) * spacing
             else:
                 # Calculate arc radius from curvature
                 # Curvature defines the angle span: larger = more curved
-                total_angle = self.curvature * (self.num_elements - 1)
-                radius = spacing / (2 * np.sin(self.curvature / 2)) if self.curvature > 0 else spacing * self.num_elements
+                total_angle = self._curvature * (self._num_elements - 1)
+                radius = spacing / (2 * np.sin(self._curvature / 2)) if self._curvature > 0 else spacing * self._num_elements
                 
                 # Position elements along arc
-                angles = np.linspace(-total_angle/2, total_angle/2, self.num_elements)
+                angles = np.linspace(-total_angle/2, total_angle/2, self._num_elements)
                 positions[:, 0] = radius * np.sin(angles)
                 positions[:, 1] = radius * (1 - np.cos(angles))
                 
             return positions
         else:
-            raise ValueError(f"Unknown array type: {self.array_type}")
+            raise ValueError(f"Unknown array type: {self._array_type}")
     
     def calculate_steering_vector(
         self, 
@@ -88,7 +155,7 @@ class PhasedArray:
         
         # Direction vector (original working version)
         # For linear arrays along X-axis, this convention works correctly
-        k = 2 * np.pi / self.wavelength
+        k = 2 * np.pi / self._wavelength
         k_vec = k * np.array([
             np.sin(theta_rad) * np.cos(phi_rad),
             np.sin(theta_rad) * np.sin(phi_rad),
@@ -96,7 +163,7 @@ class PhasedArray:
         ])
         
         # Calculate phase shifts for each element
-        phase_shifts = np.dot(self.element_positions, k_vec)
+        phase_shifts = np.dot(self._element_positions, k_vec)
         steering_vector = np.exp(1j * phase_shifts)
         
         return steering_vector
@@ -143,7 +210,7 @@ class PhasedArray:
             Array factor magnitude
         """
         if weights is None:
-            weights = np.ones(self.num_elements)
+            weights = np.ones(self._num_elements)
         
         array_factor = np.zeros(len(theta_range), dtype=complex)
         
@@ -244,14 +311,14 @@ class PhasedArray:
             Tuple of (x_grid, y_grid, magnitude_grid)
         """
         if weights is None:
-            weights = np.ones(self.num_elements, dtype=complex)
+            weights = np.ones(self._num_elements, dtype=complex)
         
         # Normalize weights
         weights = weights / np.max(np.abs(weights))
         
         # Auto-scale range based on array geometry if not provided
         if x_range is None:
-            x_positions = self.element_positions[:, 0] / self.wavelength
+            x_positions = self._element_positions[:, 0] / self._wavelength
             x_span = max(np.max(x_positions) - np.min(x_positions), 1.0)
             x_center = (np.max(x_positions) + np.min(x_positions)) / 2
             x_range = (x_center - x_span * 2, x_center + x_span * 2)
@@ -273,13 +340,13 @@ class PhasedArray:
         field_magnitude = np.zeros_like(x_grid)
         
         # Wave number
-        k = 2 * np.pi / self.wavelength
+        k = 2 * np.pi / self._wavelength
         
         # Calculate field at each point by summing contributions from all elements
         total_field = np.zeros_like(x_grid, dtype=complex)
         
-        for elem_idx in range(self.num_elements):
-            elem_pos = self.element_positions[elem_idx]
+        for elem_idx in range(self._num_elements):
+            elem_pos = self._element_positions[elem_idx]
             
             # Distance from element to each grid point
             dx = x_phys - elem_pos[0]
@@ -289,7 +356,7 @@ class PhasedArray:
             distance = np.sqrt(dx**2 + dy**2 + dz**2)
             
             # Avoid division by zero at element positions
-            distance = np.maximum(distance, self.wavelength / 100)
+            distance = np.maximum(distance, self._wavelength / 100)
             
             # Complex field contribution (plane wave approximation for clearer interference)
             # Use negative phase for proper interference visualization
@@ -324,19 +391,19 @@ class PhasedArray:
             array_type: "linear" or "curved"
             curvature: Curvature parameter for curved arrays
         """
-        self.array_type = array_type
-        self.curvature = curvature
-        self.element_positions = self._calculate_positions()
+        self._array_type = array_type
+        self._curvature = curvature
+        self._element_positions = self._calculate_positions()
     
     def to_dict(self) -> dict:
         """Convert phased array to dictionary representation"""
         return {
-            "num_elements": self.num_elements,
-            "element_spacing": self.element_spacing,
-            "frequency": self.frequency,
-            "array_type": self.array_type,
-            "wavelength": self.wavelength,
-            "element_positions": self.element_positions.tolist()
+            "num_elements": self._num_elements,
+            "element_spacing": self._element_spacing,
+            "frequency": self._frequency,
+            "array_type": self._array_type,
+            "wavelength": self._wavelength,
+            "element_positions": self._element_positions.tolist()
         }
     
     @classmethod

@@ -17,8 +17,33 @@ class BeamformingService:
     
     def __init__(self):
         """Initialize beamforming service"""
-        self.phased_array: Optional[PhasedArray] = None
-        self.scenario: Optional[Scenario] = None
+        self._phased_array: Optional[PhasedArray] = None
+        self._scenario: Optional[Scenario] = None
+    
+    # Property getters and setters
+    @property
+    def phased_array(self) -> Optional[PhasedArray]:
+        """Get the phased array instance"""
+        return self._phased_array
+    
+    @phased_array.setter
+    def phased_array(self, value: Optional[PhasedArray]) -> None:
+        """Set the phased array instance"""
+        if value is not None and not isinstance(value, PhasedArray):
+            raise TypeError("phased_array must be an instance of PhasedArray or None")
+        self._phased_array = value
+    
+    @property
+    def scenario(self) -> Optional[Scenario]:
+        """Get the scenario instance"""
+        return self._scenario
+    
+    @scenario.setter
+    def scenario(self, value: Optional[Scenario]) -> None:
+        """Set the scenario instance"""
+        if value is not None and not isinstance(value, Scenario):
+            raise TypeError("scenario must be an instance of Scenario or None")
+        self._scenario = value
     
     def create_phased_array(
         self,

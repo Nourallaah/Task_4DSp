@@ -10,12 +10,35 @@ pillow_heif.register_heif_opener()
 class ImageProcessor:
     def __init__(self, pil: Image.Image):
         # Ensure we work with RGB and the orientation is fixed before we start
-        self.original_pil = pil.convert("RGB")
+        self._original_pil = pil.convert("RGB")
         
         # Initialize arrays
-        self.gray = self._to_gray_array(self.original_pil).astype(np.float32)
+        self._gray = self._to_gray_array(self._original_pil).astype(np.float32)
         # store fft shifted (centered)
-        self.fft = np.fft.fftshift(np.fft.fft2(self.gray))
+        self._fft = np.fft.fftshift(np.fft.fft2(self._gray))
+    
+    # Property getters and setters
+    @property
+    def original_pil(self) -> Image.Image:
+        """Get the original PIL image"""
+        return self._original_pil
+    
+    @original_pil.setter
+    def original_pil(self, value: Image.Image) -> None:
+        """Set the original PIL image and recalculate gray and fft"""
+        self._original_pil = value.convert("RGB")
+        self._gray = self._to_gray_array(self._original_pil).astype(np.float32)
+        self._fft = np.fft.fftshift(np.fft.fft2(self._gray))
+    
+    @property
+    def gray(self) -> np.ndarray:
+        """Get the grayscale array (read-only, computed from original_pil)"""
+        return self._gray
+    
+    @property
+    def fft(self) -> np.ndarray:
+        """Get the FFT array (read-only, computed from gray)"""
+        return self._fft
 
     @classmethod
     def from_bytes(cls, raw_bytes: bytes):
@@ -45,23 +68,23 @@ class ImageProcessor:
         """
         # --- FIX 2: Use LANCZOS for better quality ---
         # Resize the internal PIL image to the target size
-        new_pil = self.original_pil.resize(size_tuple, Image.LANCZOS)
+        new_pil = self._original_pil.resize(size_tuple, Image.LANCZOS)
         
         # Update internal state with new dimensions
-        self.original_pil = new_pil.convert("RGB")
-        self.gray = self._to_gray_array(self.original_pil)
+        self._original_pil = new_pil.convert("RGB")
+        self._gray = self._to_gray_array(self._original_pil)
         
         # Re-calculate FFT based on the new size
-        self.fft = np.fft.fftshift(np.fft.fft2(self.gray))
+        self._fft = np.fft.fftshift(np.fft.fft2(self._gray))
 
     # --- Visualization helpers (return PIL images) ---
 
     def get_display_original(self):
-        arr = np.clip(self.gray, 0, 255).astype('uint8')
+        arr = np.clip(self._gray, 0, 255).astype('uint8')
         return Image.fromarray(arr).convert("L")
 
     def get_magnitude_array(self):
-        return np.log1p(np.abs(self.fft))
+        return np.log1p(np.abs(self._fft))
 
     def visualize_magnitude(self):
         mag = self.get_magnitude_array()
@@ -71,7 +94,7 @@ class ImageProcessor:
         return Image.fromarray(m.astype('uint8')).convert("L")
 
     def get_phase_array(self):
-        return np.angle(self.fft)
+        return np.angle(self._fft)
 
     def visualize_phase(self):
         ph = self.get_phase_array()
@@ -80,7 +103,7 @@ class ImageProcessor:
         return Image.fromarray((255*scaled).astype('uint8')).convert("L")
 
     def get_real_array(self):
-        return np.real(self.fft)
+        return np.real(self._fft)
 
     def visualize_real(self):
         r = self.get_real_array()
@@ -89,7 +112,7 @@ class ImageProcessor:
         return Image.fromarray(r.astype('uint8')).convert("L")
 
     def get_imag_array(self):
-        return np.imag(self.fft)
+        return np.imag(self._fft)
 
     def visualize_imag(self):
         im = self.get_imag_array()

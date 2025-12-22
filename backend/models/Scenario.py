@@ -32,24 +32,85 @@ class Scenario:
             frequency: Operating frequency in Hz
             array_type: Type of array ("linear" or "curved")
         """
-        self.name = name
-        self.description = description
-        self.num_elements = num_elements
-        self.element_spacing = element_spacing
-        self.frequency = frequency
-        self.array_type = array_type
+        self._name = name
+        self._description = description
+        self._num_elements = num_elements
+        self._element_spacing = element_spacing
+        self._frequency = frequency
+        self._array_type = array_type
+    
+    # Property getters and setters
+    @property
+    def name(self) -> str:
+        """Get the scenario name"""
+        return self._name
+    
+    @name.setter
+    def name(self, value: str) -> None:
+        """Set the scenario name"""
+        self._name = value
+    
+    @property
+    def description(self) -> str:
+        """Get the scenario description"""
+        return self._description
+    
+    @description.setter
+    def description(self, value: str) -> None:
+        """Set the scenario description"""
+        self._description = value
+    
+    @property
+    def num_elements(self) -> int:
+        """Get the number of elements"""
+        return self._num_elements
+    
+    @num_elements.setter
+    def num_elements(self, value: int) -> None:
+        """Set the number of elements"""
+        self._num_elements = value
+    
+    @property
+    def element_spacing(self) -> float:
+        """Get the element spacing"""
+        return self._element_spacing
+    
+    @element_spacing.setter
+    def element_spacing(self, value: float) -> None:
+        """Set the element spacing"""
+        self._element_spacing = value
+    
+    @property
+    def frequency(self) -> float:
+        """Get the frequency"""
+        return self._frequency
+    
+    @frequency.setter
+    def frequency(self, value: float) -> None:
+        """Set the frequency"""
+        self._frequency = value
+    
+    @property
+    def array_type(self) -> str:
+        """Get the array type"""
+        return self._array_type
+    
+    @array_type.setter
+    def array_type(self, value: str) -> None:
+        """Set the array type"""
+        self._array_type = value
         
 
     
     def to_dict(self) -> dict:
         """Convert scenario to dictionary representation"""
         return {
-            "name": self.name,
-            "description": self.description,
-            "num_elements": self.num_elements,
-            "element_spacing": self.element_spacing,
-            "frequency": self.frequency,
-            "array_type": self.array_type
+            "name": self._name,
+            "description": self._description,
+            "num_elements": self._num_elements,
+            "element_spacing": self._element_spacing,
+            "frequency": self._frequency,
+            "array_type": self._array_type
         }
     
     @classmethod

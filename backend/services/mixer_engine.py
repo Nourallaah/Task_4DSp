@@ -2,7 +2,18 @@ import numpy as np
 
 class FourierMixer:
     def __init__(self, ffts):
-        self.ffts = ffts
+        self._ffts = ffts
+    
+    # Property getters and setters
+    @property
+    def ffts(self):
+        """Get the FFT arrays"""
+        return self._ffts
+    
+    @ffts.setter
+    def ffts(self, value):
+        """Set the FFT arrays"""
+        self._ffts = value
 
     # def mix_mag_phase(self, mag_list, phase_list, w_mag, w_phase, mask=None):
     #     # mag_list & phase_list are arrays (not complex)
