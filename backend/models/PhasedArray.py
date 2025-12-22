@@ -258,7 +258,7 @@ class PhasedArray:
         
         if y_range is None:
             # Default: symmetric range around array elements
-            y_range = (-3.0, 8.0)  # Show field propagating forward (positive Y)
+            y_range = (-3.0, 16.0)  # Show field propagating forward (positive Y)
         
         # Create spatial grid
         x = np.linspace(x_range[0], x_range[1], resolution)

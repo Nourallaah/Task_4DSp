@@ -17,10 +17,36 @@ export default function ThreeDPatternRenderer({ patternData }) {
 
         const container = containerRef.current;
 
-        // Clean up previous scene
+        // Improved cleanup of previous scene
+        if (sceneRef.current) {
+            // Dispose of all scene objects
+            sceneRef.current.traverse((object) => {
+                if (object.geometry) {
+                    object.geometry.dispose();
+                }
+                if (object.material) {
+                    if (Array.isArray(object.material)) {
+                        object.material.forEach(material => material.dispose());
+                    } else {
+                        object.material.dispose();
+                    }
+                }
+                if (object.texture) {
+                    object.texture.dispose();
+                }
+            });
+            sceneRef.current.clear();
+        }
+
         if (rendererRef.current) {
             rendererRef.current.dispose();
-            container.innerHTML = '';
+            if (container.contains(rendererRef.current.domElement)) {
+                container.removeChild(rendererRef.current.domElement);
+            }
+        }
+
+        if (controlsRef.current) {
+            controlsRef.current.dispose();
         }
 
         // Scene setup
@@ -74,8 +100,9 @@ export default function ThreeDPatternRenderer({ patternData }) {
         scene.add(gridHelper);
 
         // Animation loop
+        let animationId;
         function animate() {
-            requestAnimationFrame(animate);
+            animationId = requestAnimationFrame(animate);
             controls.update();
             renderer.render(scene, camera);
         }
@@ -94,7 +121,26 @@ export default function ThreeDPatternRenderer({ patternData }) {
         // Cleanup
         return () => {
             window.removeEventListener('resize', handleResize);
+            cancelAnimationFrame(animationId);
             controls.dispose();
+
+            // Dispose of all scene objects
+            scene.traverse((object) => {
+                if (object.geometry) {
+                    object.geometry.dispose();
+                }
+                if (object.material) {
+                    if (Array.isArray(object.material)) {
+                        object.material.forEach(material => material.dispose());
+                    } else {
+                        object.material.dispose();
+                    }
+                }
+                if (object.texture) {
+                    object.texture.dispose();
+                }
+            });
+
             renderer.dispose();
             if (container.contains(renderer.domElement)) {
                 container.removeChild(renderer.domElement);
