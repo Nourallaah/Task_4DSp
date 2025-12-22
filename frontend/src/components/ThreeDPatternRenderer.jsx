@@ -154,12 +154,12 @@ function createPatternSurface(scene, patternData) {
             const phiRad = phi[i][j] * Math.PI / 180;
             const r = magnitude[i][j]; // Already normalized 0-1
 
-            // Convert spherical to Cartesian for array along X-axis
-            // theta: azimuth in XY plane, phi: elevation from XY plane
-            // For linear array along X-axis, broadside is along Y-axis
-            const x = r * Math.sin(phiRad) * Math.cos(thetaRad);
-            const y = r * Math.cos(phiRad);  // Main lobe direction (broadside to X-axis array)
-            const z = r * Math.sin(phiRad) * Math.sin(thetaRad);
+            // Convert spherical to Cartesian matching backend convention
+            // Backend uses: theta = polar angle from Z-axis, phi = azimuth in XY plane
+            // k_vec = [sin(theta)*cos(phi), sin(theta)*sin(phi), cos(theta)]
+            const x = r * Math.sin(thetaRad) * Math.cos(phiRad);
+            const y = r * Math.sin(thetaRad) * Math.sin(phiRad);
+            const z = r * Math.cos(thetaRad);
 
             vertices.push(x, y, z);
 
