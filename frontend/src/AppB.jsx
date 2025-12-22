@@ -118,7 +118,7 @@ export default function AppB() {
     const handleResetToDefault = () => {
         // Reset to initial default values
         updateParams({
-            numElements: 16,
+            numElements: 8,
             elementSpacing: 0.5,
             frequency: 1e9,
             geometry: "linear",
