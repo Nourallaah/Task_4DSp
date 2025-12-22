@@ -237,7 +237,6 @@ class BeamformingService:
             "num_elements": self.scenario.num_elements,
             "frequency": self.scenario.frequency,
             "array_type": self.scenario.array_type,
-            "sources": [s.to_dict() for s in self.scenario.sources],
             "status": f"Loaded {preset_name} scenario successfully"
         }
     

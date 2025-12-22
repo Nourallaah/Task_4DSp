@@ -65,7 +65,6 @@ class ScenarioResponse(BaseModel):
     num_elements: int
     frequency: float
     array_type: str
-    sources: List[Dict]
     status: str
 
 
